@@ -51,9 +51,9 @@ func convertAppContextToJson(obj *AppContext) string {
 	return string(jsonInfo)
 }
 
-func convertJsonToApplicationList(jsonInfo string) *ApplicationList {
+func convertJsonToApplicationList(jsonInfo string) *AppPackage {
 
-	var obj ApplicationList
+	var obj AppPackage
 	err := json.Unmarshal([]byte(jsonInfo), &obj)
 	if err != nil {
 		log.Error(err.Error())

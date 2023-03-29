@@ -112,9 +112,10 @@ var apiMgr *sam.SwaggerApiMgr
 var appSupportClient *asc.APIClient
 var svcMgmtClient *smc.APIClient
 var sbxCtrlClient *scc.APIClient
-var appEnablementServiceId string
-var appTermSubId string
-var sendAppTerminationWhenDone bool = false
+
+// var appEnablementServiceId string
+// var appTermSubId string
+// var sendAppTerminationWhenDone bool = false
 var serviceAppInstanceId string
 
 var registrationTicker *time.Ticker
@@ -196,7 +197,7 @@ func registerService(appInstanceId string) error {
 		return err
 	}
 	log.Info("Application Enablement Service instance Id: ", appServicesPostResponse.SerInstanceId)
-	appEnablementServiceId = appServicesPostResponse.SerInstanceId
+	// appEnablementServiceId = appServicesPostResponse.SerInstanceId
 	return nil
 }
 
@@ -220,13 +221,13 @@ func subscribeAppTermination(appInstanceId string) error {
 	} else {
 		sub.CallbackReference = "http://" + mepName + "-" + moduleName + "/" + bwmBasePath + appTerminationPath
 	}
-	subscription, _, err := appSupportClient.MecAppSupportApi.ApplicationsSubscriptionsPOST(context.TODO(), sub, appInstanceId)
+	_, _, err := appSupportClient.MecAppSupportApi.ApplicationsSubscriptionsPOST(context.TODO(), sub, appInstanceId)
 	if err != nil {
 		log.Error("Failed to register to App Support subscription: ", err)
 		return err
 	}
-	appTermSubLink := subscription.Links.Self.Href
-	appTermSubId = appTermSubLink[strings.LastIndex(appTermSubLink, "/")+1:]
+	// appTermSubLink := subscription.Links.Self.Href
+	// appTermSubId = appTermSubLink[strings.LastIndex(appTermSubLink, "/")+1:]
 	return nil
 }
 
@@ -413,7 +414,7 @@ func startRegistrationTicker() {
 					log.Error("Failed to subscribe to graceful termination. Error: ", err)
 					continue
 				}
-				sendAppTerminationWhenDone = true
+				// sendAppTerminationWhenDone = true
 				subscriptionSent = true
 			}
 

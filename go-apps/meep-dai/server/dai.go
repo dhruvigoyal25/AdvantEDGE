@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * AdvantEDGE Device Application Interface
+ * AdvantEDGE Device application interface
  *
- * Device application interface is AdvantEDGE's implementation of [ETSI MEC ISG MEC016 Device application interface API](http://www.etsi.org/deliver/etsi_gs/MEC/001_099/021/02.02.01_60/gs_MEC016v020201p.pdf) <p>[Copyright (c) ETSI 2017](https://forge.etsi.org/etsi-forge-copyright-notice.txt) <p>**Micro-service**<br>[meep-dai](https://github.com/InterDigitalInc/AdvantEDGE/tree/master/go-apps/meep-dai) <p>**Type & Usage**<br>Edge Service used by edge applications that want to get information about application mobility in the network <p>**Note**<br>AdvantEDGE supports a selected subset of Device application interface API endpoints (see below).
+ * Device application interface is AdvantEDGE's implementation of [ETSI GS MEC016 Device application interface](http://www.etsi.org/deliver/etsi_gs/MEC/001_099/030/02.02.01_60/gs_MEC016v020201p.pdf) <p>[Copyright (c) ETSI 2017](https://forge.etsi.org/etsi-forge-copyright-notice.txt) <p>**Micro-service**<br>[meep-dai](https://github.com/InterDigitalInc/AdvantEDGE/tree/master/go-apps/meep-dai) <p>**Type & Usage**<br>Edge Service used by edge applications that want to get information about radio conditions in the network <p>**Note**<br>AdvantEDGE supports a selected subset of DAI API endpoints (see below) and a subset of subscription types.
  *
  * API version: 2.2.1
  * Contact: AdvantEDGE@InterDigital.com
@@ -33,6 +33,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 
@@ -111,6 +112,25 @@ var postgresHost string = ""
 var postgresPort string = ""
 
 var onboardedMecApplicationsFolder string = "/onboardedapp-vol/"
+
+type AppPackage struct {
+	App  ApplicationListAppList `json:"app"`
+	Cmd  string                 `json:"cmd"`
+	Args []string               `json:"args,omitempty"`
+}
+
+type AppExecEntry struct {
+	cmd    *exec.Cmd
+	stdout *bytes.Buffer
+	stderr *bytes.Buffer
+}
+
+var appDetails = make(map[string]AppPackage)
+var appContextDetails = make(map[string]AppContext)
+var appExecEntries map[int]AppExecEntry = make(map[int]AppExecEntry)
+var appContexts map[string]AppContext = make(map[string]AppContext)
+
+type Uri string
 
 // Notifications
 const (
@@ -447,7 +467,98 @@ func Init() (err error) {
 		log.Info("Create App Enablement Service Management REST API client")
 	}
 
+	err = LoadOnboardedMecApplications(onboardedMecApplicationsFolder)
+	if err != nil {
+		log.Error("Failed to load simulating data: ", err)
+		return err
+	}
+
 	log.Info("DAI successfully initialized")
+	return nil
+}
+
+// LoadOnboardedMecApplications -- This function simulates an existing onboarded MEC Application on platform.
+func LoadOnboardedMecApplications(folder string) (err error) {
+	log.Info("LoadOnboardedMecApplications: ", folder)
+
+	var onboardedAppList []AppPackage
+	// Read the list of yaml file
+	files, err := ioutil.ReadDir(folder)
+	if err != nil {
+		log.Error(err.Error())
+	} else {
+		for _, file := range files {
+			if !file.IsDir() && strings.HasPrefix(file.Name(), "onboarded-demo") { // Hard-coded in HELM charts
+				log.Info("LoadOnboardedMecApplications: Processing file ", file.Name())
+
+				jsonFile, err := os.Open(folder + file.Name())
+				if err != nil {
+					log.Error(err.Error())
+					continue
+				}
+				defer jsonFile.Close()
+				byteValue, err := ioutil.ReadAll(jsonFile)
+				if err != nil {
+					log.Error(err.Error())
+					continue
+
+				}
+
+				appPackage := convertJsonToApplicationList(string(byteValue))
+				if appPackage == nil {
+					err = errors.New("Failed to convert file " + file.Name())
+					log.Error(err.Error())
+					continue
+				}
+
+				err = CreateAppEntry(appPackage)
+				if err != nil {
+					log.Error(err.Error())
+					continue
+				}
+
+				onboardedAppList = append(onboardedAppList, *appPackage)
+			}
+		} // End of 'for' statement
+	}
+
+	if len(onboardedAppList) == 0 {
+		log.Error("No onboarded MEC application found")
+		return nil
+	}
+
+	log.Info("Created onboarded user application")
+	return nil
+}
+
+func CreateAppEntry(appPackage *AppPackage) (err error) {
+
+	// Sanity checks
+	if appPackage.App.AppInfo.AppDId == "" { // ETSI GS MEC 016 Clause 6.2.2 Type: ApplicationList
+		return errors.New("Missing AppDId")
+	}
+	if appPackage.App.AppInfo.AppName == "" { // ETSI GS MEC 016 Clause 6.2.2 Type: ApplicationList
+		return errors.New("Missing AppName")
+	}
+	if appPackage.App.AppInfo.AppProvider == "" { // ETSI GS MEC 016 Clause 6.2.2 Type: ApplicationList
+		return errors.New("Missing AppProvider")
+	}
+	if appPackage.App.AppInfo.AppSoftVersion == "" { // ETSI GS MEC 016 Clause 6.2.2 Type: ApplicationList
+		return errors.New("Missing AppSoftVersion")
+	}
+	if appPackage.App.AppInfo.AppDVersion == "" { // ETSI GS MEC 016 Clause 6.2.2 Type: ApplicationList
+		return errors.New("Missing AppDVersion")
+	}
+	if appPackage.App.AppInfo.AppDescription == "" { // ETSI GS MEC 016 Clause 6.2.2 Type: ApplicationList
+		return errors.New("Missing AppDescription")
+	}
+	if appPackage.App.AppInfo.AppCharcs == nil { // ETSI GS MEC 016 Clause 6.2.2 Type: ApplicationList
+		return errors.New("Missing AppCharcs")
+	}
+
+	// add appPackage to appDetails map
+	appDetails[appPackage.App.AppInfo.AppDId] = *appPackage
+
 	return nil
 }
 
@@ -608,39 +719,31 @@ func meAppListGET(w http.ResponseWriter, r *http.Request) {
 	vendorId := q["vendorId"]
 	serviceCont := q["serviceCont"]
 
-	// log.Debug("meAppListGET: appName: ", appName)
-	// log.Debug("meAppListGET: appProvider: ", appProvider)
-	// log.Debug("meAppListGET: appSoftVersion: ", appSoftVersion)
-	// log.Debug("meAppListGET: vendorId: ", vendorId)
-	// log.Debug("meAppListGET: serviceCont: ", serviceCont)
+	log.Debug("meAppListGET: appName: ", appName)
+	log.Debug("meAppListGET: appProvider: ", appProvider)
+	log.Debug("meAppListGET: appSoftVersion: ", appSoftVersion)
+	log.Debug("meAppListGET: vendorId: ", vendorId)
+	log.Debug("meAppListGET: serviceCont: ", serviceCont)
 
-	// Get the ApplicationList
-	appInfoList, err := sbi.GetApplicationListAppList(appName, appProvider, appSoftVersion, vendorId, serviceCont)
-	if err != nil {
-		log.Error(err.Error())
-		errHandlerProblemDetails(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	log.Debug("meAppListGET: appInfoList: ", appInfoList)
-	log.Debug("meAppListGET: len(appInfoList): ", len(*appInfoList))
+	filteredAppList := getFilteredAppList(appName, appProvider, appSoftVersion, vendorId, serviceCont)
 
 	// Build the response
 	var appList ApplicationList
-	appList.AppList = make([]ApplicationListAppList, len(*appInfoList))
+	appList.AppList = make([]ApplicationListAppList, len(filteredAppList))
 	//log.Debug("meAppListGET: len(appList.AppList): ", len(appList.AppList))
 	var i int32 = 0
-	for _, item := range *appInfoList {
+	for _, item := range filteredAppList {
 		appList.AppList[i].AppInfo = new(ApplicationListAppInfo)
-		appList.AppList[i].AppInfo.AppDId = item.AppDId
-		appList.AppList[i].AppInfo.AppName = item.AppName
-		appList.AppList[i].AppInfo.AppProvider = item.AppProvider
-		appList.AppList[i].AppInfo.AppSoftVersion = item.AppSoftVersion
-		appList.AppList[i].AppInfo.AppDVersion = item.AppDVersion
-		appList.AppList[i].AppInfo.AppDescription = item.AppDescription
+		appList.AppList[i].AppInfo.AppDId = item.App.AppInfo.AppDId
+		appList.AppList[i].AppInfo.AppName = item.App.AppInfo.AppName
+		appList.AppList[i].AppInfo.AppProvider = item.App.AppInfo.AppProvider
+		appList.AppList[i].AppInfo.AppSoftVersion = item.App.AppInfo.AppSoftVersion
+		appList.AppList[i].AppInfo.AppDVersion = item.App.AppInfo.AppDVersion
+		appList.AppList[i].AppInfo.AppDescription = item.App.AppInfo.AppDescription
 		//log.Debug("meAppListGET: appList.AppList[i].AppInfo: ", appList.AppList[i].AppInfo)
 
-		appList.AppList[i].AppInfo.AppLocation = make([]LocationConstraints, len(item.AppLocation))
-		for j, item1 := range item.AppLocation {
+		appList.AppList[i].AppInfo.AppLocation = make([]LocationConstraints, len(item.App.AppInfo.AppLocation))
+		for j, item1 := range item.App.AppInfo.AppLocation {
 			if item1.Area != nil {
 				appList.AppList[i].AppInfo.AppLocation[j].Area = new(Polygon)
 				appList.AppList[i].AppInfo.AppLocation[j].Area.Coordinates = item1.Area.Coordinates
@@ -649,41 +752,37 @@ func meAppListGET(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if item1.CivicAddressElement != nil {
-				appList.AppList[i].AppInfo.AppLocation[j].CivicAddressElement = make([]LocationConstraintsCivicAddressElement, len(*item1.CivicAddressElement))
-				for k, cv := range *item1.CivicAddressElement {
+				appList.AppList[i].AppInfo.AppLocation[j].CivicAddressElement = make([]LocationConstraintsCivicAddressElement, len(item1.CivicAddressElement))
+				for k, cv := range item1.CivicAddressElement {
 					appList.AppList[i].AppInfo.AppLocation[j].CivicAddressElement[k].CaType = cv.CaType
 					appList.AppList[i].AppInfo.AppLocation[j].CivicAddressElement[k].CaValue = cv.CaValue
 				} // End of 'for' statement
 			} else {
 				appList.AppList[i].AppInfo.AppLocation[j].CivicAddressElement = make([]LocationConstraintsCivicAddressElement, 0)
 			}
-			if item1.CountryCode != nil {
-				appList.AppList[i].AppInfo.AppLocation[j].CountryCode = *item1.CountryCode
+			if item1.CountryCode != "" {
+				appList.AppList[i].AppInfo.AppLocation[j].CountryCode = item1.CountryCode
 			}
 		} // End of 'for' statement
 
-		if len(item.AppCharcs) == 1 {
-			appList.AppList[i].AppInfo.AppCharcs = new(ApplicationListAppInfoAppCharcs)
-			if item.AppCharcs[0].Memory != nil {
-				appList.AppList[i].AppInfo.AppCharcs.Memory = int32(*item.AppCharcs[0].Memory)
-			}
-			if item.AppCharcs[0].Storage != nil {
-				appList.AppList[i].AppInfo.AppCharcs.Storage = int32(*item.AppCharcs[0].Storage)
-			}
-			if item.AppCharcs[0].Latency != nil {
-				appList.AppList[i].AppInfo.AppCharcs.Latency = int32(*item.AppCharcs[0].Latency)
-			}
-			if item.AppCharcs[0].Bandwidth != nil {
-				appList.AppList[i].AppInfo.AppCharcs.Bandwidth = int32(*item.AppCharcs[0].Bandwidth)
-			}
-			if item.AppCharcs[0].ServiceCont != nil {
-				appList.AppList[i].AppInfo.AppCharcs.ServiceCont = int32(*item.AppCharcs[0].ServiceCont)
-			}
-		} else {
-			appList.AppList[i].AppInfo.AppCharcs = nil
+		appList.AppList[i].AppInfo.AppCharcs = new(ApplicationListAppInfoAppCharcs)
+		if item.App.AppInfo.AppCharcs.Memory != 0 {
+			appList.AppList[i].AppInfo.AppCharcs.Memory = int32(item.App.AppInfo.AppCharcs.Memory)
+		}
+		if item.App.AppInfo.AppCharcs.Storage != 0 {
+			appList.AppList[i].AppInfo.AppCharcs.Storage = int32(item.App.AppInfo.AppCharcs.Storage)
+		}
+		if item.App.AppInfo.AppCharcs.Latency != 0 {
+			appList.AppList[i].AppInfo.AppCharcs.Latency = int32(item.App.AppInfo.AppCharcs.Latency)
+		}
+		if item.App.AppInfo.AppCharcs.Bandwidth != 0 {
+			appList.AppList[i].AppInfo.AppCharcs.Bandwidth = int32(item.App.AppInfo.AppCharcs.Bandwidth)
+		}
+		if item.App.AppInfo.AppCharcs.ServiceCont != 0 {
+			appList.AppList[i].AppInfo.AppCharcs.ServiceCont = int32(item.App.AppInfo.AppCharcs.ServiceCont)
 		}
 
-		appList.AppList[i].VendorSpecificExt = nil // FIXME Not supported yet
+		appList.AppList[i].VendorSpecificExt = item.App.VendorSpecificExt
 
 		i = i + 1
 	} // End of 'for' statement
@@ -693,7 +792,7 @@ func meAppListGET(w http.ResponseWriter, r *http.Request) {
 	var jsonResponse string = convertApplicationListToJson(&appList)
 	log.Info("json response: ", jsonResponse)
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, string(jsonResponse))
+	fmt.Fprint(w, string(jsonResponse))
 }
 
 func devAppContextsPOST(w http.ResponseWriter, r *http.Request) {
@@ -708,67 +807,22 @@ func devAppContextsPOST(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Info("devAppContextsPOST: ", appContext)
 
-	// Create the AppContext
-	var appContextSbi meepdaimgr.AppContext
-	appContextSbi.AppAutoInstantiation = appContext.AppAutoInstantiation
-	if appContext.AppInfo == nil {
-		err = errors.New("AppInfo shall be present")
-		log.Error(err.Error())
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	appContextSbi.AppInfo.AppDId = new(string)
-	*appContextSbi.AppInfo.AppDId = appContext.AppInfo.AppDId
-	appContextSbi.AppInfo.AppDVersion = appContext.AppInfo.AppDVersion
-	appContextSbi.AppInfo.AppDescription = appContext.AppInfo.AppDescription
-	appContextSbi.AppInfo.AppName = appContext.AppInfo.AppName
-	appContextSbi.AppInfo.AppProvider = appContext.AppInfo.AppProvider
-	appContextSbi.AppInfo.AppSoftVersion = new(string)
-	*appContextSbi.AppInfo.AppSoftVersion = appContext.AppInfo.AppSoftVersion
-	appContextSbi.AppInfo.UserAppInstanceInfo = make(meepdaimgr.UserAppInstanceInfo, len(appContext.AppInfo.UserAppInstanceInfo))
-	for i, item := range appContext.AppInfo.UserAppInstanceInfo {
-		if item.AppLocation != nil {
-			appContextSbi.AppInfo.UserAppInstanceInfo[i].AppLocation = make(meepdaimgr.LocationConstraints, 1)
-			if item.AppLocation.Area != nil {
-				area := meepdaimgr.Polygon(*item.AppLocation.Area)
-				appContextSbi.AppInfo.UserAppInstanceInfo[i].AppLocation[0].Area = &area
-			}
-			if len(item.AppLocation.CivicAddressElement) != 0 {
-				c := make(meepdaimgr.CivicAddressElement, len(item.AppLocation.CivicAddressElement))
-				for j, item1 := range item.AppLocation.CivicAddressElement {
-					c[j].CaType = item1.CaType
-					c[j].CaValue = item1.CaValue
-				} // End of 'for' statement
-				appContextSbi.AppInfo.UserAppInstanceInfo[i].AppLocation[0].CivicAddressElement = &c
-			}
-			appContextSbi.AppInfo.UserAppInstanceInfo[i].AppLocation[0].CountryCode = new(string)
-			*appContextSbi.AppInfo.UserAppInstanceInfo[i].AppLocation[0].CountryCode = item.AppLocation.CountryCode
-		}
-	} // End of 'for' statement
-	appContextSbi.AppLocationUpdates = appContext.AppLocationUpdates
-	appContextSbi.AssociateDevAppId = appContext.AssociateDevAppId
-	appContextSbi.CallbackReference = meepdaimgr.Uri(appContext.CallbackReference)
-	appContextSbi.ContextId = nil
-	log.Debug("devAppContextsPOST: Before appContextSbi: ", appContextSbi)
-	appContextSbi_, err := sbi.CreateAppContext(&appContextSbi)
+	// Create the AppContex
+	appContextSbi_, err := CreateAppContext(&appContext)
 	if err != nil {
 		log.Error(err.Error())
 		errHandlerProblemDetails(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	log.Debug("devAppContextsPOST: After appContextSbi_: ", appContextSbi_)
-	log.Debug("devAppContextsPOST: *appContextSbi_.ContextId: ", *appContextSbi_.ContextId)
-	log.Debug("devAppContextsPOST: appContextSbi_.AppInfo: ", appContextSbi_.AppInfo)
-	log.Debug("devAppContextsPOST: appContextSbi_.AppInfo.UserAppInstanceInfo: ", appContextSbi_.AppInfo.UserAppInstanceInfo)
 
 	// Update AppContext
-	appContext.ContextId = *appContextSbi_.ContextId
+	appContext.ContextId = appContextSbi_.ContextId
 	for i, item := range appContextSbi_.AppInfo.UserAppInstanceInfo {
-		if item.AppInstanceId != nil {
-			appContext.AppInfo.UserAppInstanceInfo[i].AppInstanceId = *item.AppInstanceId
+		if item.AppInstanceId != "" {
+			appContext.AppInfo.UserAppInstanceInfo[i].AppInstanceId = item.AppInstanceId
 		}
-		if item.ReferenceURI != nil {
-			appContext.AppInfo.UserAppInstanceInfo[i].ReferenceURI = string(*item.ReferenceURI)
+		if item.ReferenceURI != "" {
+			appContext.AppInfo.UserAppInstanceInfo[i].ReferenceURI = string(item.ReferenceURI)
 		}
 	} // End of 'for' statement
 
@@ -780,14 +834,14 @@ func devAppContextsPOST(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusCreated)
-	fmt.Fprintf(w, string(jsonResponse))
+	fmt.Fprint(w, string(jsonResponse))
 }
 
 func devAppContextDELETE(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	contextId := vars["contextId"]
 	log.Debug("devAppContextDELETE: contextId: ", contextId)
-	err := sbi.DeleteAppContext(contextId)
+	err := DeleteAppContext(contextId)
 	if err != nil {
 		log.Error(err.Error())
 		errHandlerProblemDetails(w, err.Error(), http.StatusInternalServerError)
@@ -823,53 +877,7 @@ func devAppContextPUT(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create the AppContext
-	var appContextSbi meepdaimgr.AppContext
-	appContextSbi.AppAutoInstantiation = appContext.AppAutoInstantiation
-	if appContext.AppInfo == nil {
-		err = errors.New("AppInfo shall be present")
-		log.Error(err.Error())
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	appContextSbi.AppInfo.AppDId = new(string)
-	*appContextSbi.AppInfo.AppDId = appContext.AppInfo.AppDId
-	appContextSbi.AppInfo.AppDVersion = appContext.AppInfo.AppDVersion
-	appContextSbi.AppInfo.AppDescription = appContext.AppInfo.AppDescription
-	appContextSbi.AppInfo.AppName = appContext.AppInfo.AppName
-	appContextSbi.AppInfo.AppProvider = appContext.AppInfo.AppProvider
-	appContextSbi.AppInfo.AppSoftVersion = new(string)
-	*appContextSbi.AppInfo.AppSoftVersion = appContext.AppInfo.AppSoftVersion
-	appContextSbi.AppInfo.UserAppInstanceInfo = make(meepdaimgr.UserAppInstanceInfo, len(appContext.AppInfo.UserAppInstanceInfo))
-	for i, item := range appContext.AppInfo.UserAppInstanceInfo {
-		appContextSbi.AppInfo.UserAppInstanceInfo[i].AppInstanceId = new(string)
-		*appContextSbi.AppInfo.UserAppInstanceInfo[i].AppInstanceId = item.AppInstanceId
-		appContextSbi.AppInfo.UserAppInstanceInfo[i].ReferenceURI = new(meepdaimgr.Uri)
-		*appContextSbi.AppInfo.UserAppInstanceInfo[i].ReferenceURI = meepdaimgr.Uri(item.ReferenceURI)
-		if item.AppLocation != nil {
-			appContextSbi.AppInfo.UserAppInstanceInfo[i].AppLocation = make(meepdaimgr.LocationConstraints, 1)
-			if item.AppLocation.Area != nil {
-				area := meepdaimgr.Polygon(*item.AppLocation.Area)
-				appContextSbi.AppInfo.UserAppInstanceInfo[i].AppLocation[0].Area = &area
-			}
-			if len(item.AppLocation.CivicAddressElement) != 0 {
-				c := make(meepdaimgr.CivicAddressElement, len(item.AppLocation.CivicAddressElement))
-				for j, item1 := range item.AppLocation.CivicAddressElement {
-					c[j].CaType = item1.CaType
-					c[j].CaValue = item1.CaValue
-				} // End of 'for' statement
-				appContextSbi.AppInfo.UserAppInstanceInfo[i].AppLocation[0].CivicAddressElement = &c
-			}
-			appContextSbi.AppInfo.UserAppInstanceInfo[i].AppLocation[0].CountryCode = new(string)
-			*appContextSbi.AppInfo.UserAppInstanceInfo[i].AppLocation[0].CountryCode = item.AppLocation.CountryCode
-		}
-	} // End of 'for' statement
-	appContextSbi.AppLocationUpdates = appContext.AppLocationUpdates
-	appContextSbi.AssociateDevAppId = appContext.AssociateDevAppId
-	appContextSbi.CallbackReference = meepdaimgr.Uri(appContext.CallbackReference)
-	appContextSbi.ContextId = new(string)
-	*appContextSbi.ContextId = appContext.ContextId
-	log.Debug("devAppContextPUT: appContextSbi: ", appContextSbi)
-	err = sbi.PutAppContext(appContextSbi)
+	err = PutAppContext(appContext)
 	if err != nil {
 		log.Error(err.Error())
 		errHandlerProblemDetails(w, err.Error(), http.StatusInternalServerError)
@@ -899,26 +907,14 @@ func appLocationAvailabilityPOST(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if applicationLocationAvailability.AppInfo.AppPackageSource == "" { // Check presence of the filed AppPackageSource in te request
+	if applicationLocationAvailability.AppInfo.AppPackageSource == "" { // Check presence of the filed AppPackageSource in the request
 		err = errors.New("AppPackageSource mismatch")
 		log.Error(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	var applicationLocationAvailabilitySbi meepdaimgr.ApplicationLocationAvailability
-	applicationLocationAvailabilitySbi.AppInfo = new(meepdaimgr.ApplicationLocationAvailabilityAppInfo)
-	applicationLocationAvailabilitySbi.AppInfo.AppName = applicationLocationAvailability.AppInfo.AppName
-	applicationLocationAvailabilitySbi.AppInfo.AppProvider = applicationLocationAvailability.AppInfo.AppProvider
-	applicationLocationAvailabilitySbi.AppInfo.AppSoftVersion = new(string)
-	*applicationLocationAvailabilitySbi.AppInfo.AppSoftVersion = applicationLocationAvailability.AppInfo.AppSoftVersion
-	applicationLocationAvailabilitySbi.AppInfo.AppDVersion = applicationLocationAvailability.AppInfo.AppDVersion
-	applicationLocationAvailabilitySbi.AppInfo.AppDescription = applicationLocationAvailability.AppInfo.AppDescription
-	applicationLocationAvailabilitySbi.AppInfo.AppPackageSource = new(meepdaimgr.Uri)
-	*applicationLocationAvailabilitySbi.AppInfo.AppPackageSource = meepdaimgr.Uri(applicationLocationAvailability.AppInfo.AppPackageSource)
-	// FIXME Should AvailableLocations field bet set ?
-	applicationLocationAvailabilitySbi.AssociateDevAppId = applicationLocationAvailability.AssociateDevAppId
-	applicationLocationAvailabilitySbi_, err := sbi.PosApplicationLocationAvailability(&applicationLocationAvailabilitySbi)
+	applicationLocationAvailability_, err := PostApplicationLocationAvailability(applicationLocationAvailability)
 	if err != nil {
 		log.Error(err.Error())
 		errHandlerProblemDetails(w, err.Error(), http.StatusInternalServerError)
@@ -926,29 +922,29 @@ func appLocationAvailabilityPOST(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Build response: only update AvailableLocations field
-	log.Debug("devAppContextsPOST: applicationLocationAvailabilitySbi_.AppInfo.AvailableLocations: ", applicationLocationAvailabilitySbi_.AppInfo.AvailableLocations)
-	log.Debug("devAppContextsPOST: len(applicationLocationAvailabilitySbi_.AppInfo.AvailableLocations): ", len(applicationLocationAvailabilitySbi_.AppInfo.AvailableLocations))
-	applicationLocationAvailability.AppInfo.AvailableLocations = make([]ApplicationLocationAvailabilityAppInfoAvailableLocations, len(applicationLocationAvailabilitySbi_.AppInfo.AvailableLocations))
+	log.Debug("devAppContextsPOST: applicationLocationAvailability_.AppInfo.AvailableLocations: ", applicationLocationAvailability_.AppInfo.AvailableLocations)
+	log.Debug("devAppContextsPOST: len(applicationLocationAvailability_.AppInfo.AvailableLocations): ", len(applicationLocationAvailability_.AppInfo.AvailableLocations))
+	// applicationLocationAvailability.AppInfo.AvailableLocations = make([]ApplicationLocationAvailabilityAppInfoAvailableLocations, len(applicationLocationAvailability_.AppInfo.AvailableLocations))
 	if len(applicationLocationAvailability.AppInfo.AvailableLocations) != 0 {
-		for i, item := range applicationLocationAvailabilitySbi_.AppInfo.AvailableLocations {
+		for i, item := range applicationLocationAvailability_.AppInfo.AvailableLocations {
 			applicationLocationAvailability.AppInfo.AvailableLocations[i].AppLocation = new(LocationConstraints)
 
-			if (*item.AppLocation)[0].Area != nil {
+			if item.AppLocation.Area != nil {
 				applicationLocationAvailability.AppInfo.AvailableLocations[i].AppLocation.Area = new(Polygon)
-				applicationLocationAvailability.AppInfo.AvailableLocations[i].AppLocation.Area.Coordinates = (*item.AppLocation)[0].Area.Coordinates
+				applicationLocationAvailability.AppInfo.AvailableLocations[i].AppLocation.Area.Coordinates = item.AppLocation.Area.Coordinates
 			}
 
-			if (*item.AppLocation)[0].CivicAddressElement != nil {
-				applicationLocationAvailability.AppInfo.AvailableLocations[i].AppLocation.CivicAddressElement = make([]LocationConstraintsCivicAddressElement, len(*(*item.AppLocation)[0].CivicAddressElement))
-				for j, cv := range *(*item.AppLocation)[0].CivicAddressElement {
+			if item.AppLocation.CivicAddressElement != nil {
+				applicationLocationAvailability.AppInfo.AvailableLocations[i].AppLocation.CivicAddressElement = make([]LocationConstraintsCivicAddressElement, len(item.AppLocation.CivicAddressElement))
+				for j, cv := range item.AppLocation.CivicAddressElement {
 					applicationLocationAvailability.AppInfo.AvailableLocations[i].AppLocation.CivicAddressElement[j].CaType = cv.CaType
 					applicationLocationAvailability.AppInfo.AvailableLocations[i].AppLocation.CivicAddressElement[j].CaValue = cv.CaValue
 				} // End of 'for' statement
 			}
 
-			if (*item.AppLocation)[0].CountryCode != nil {
-				log.Debug("devAppContextsPOST: *(*item.AppLocation)[0].CountryCode: ", *(*item.AppLocation)[0].CountryCode)
-				applicationLocationAvailability.AppInfo.AvailableLocations[i].AppLocation.CountryCode = *(*item.AppLocation)[0].CountryCode
+			if item.AppLocation.CountryCode != "" {
+				log.Debug("devAppContextsPOST: *(*item.AppLocation)[0].CountryCode: ", item.AppLocation.CountryCode)
+				applicationLocationAvailability.AppInfo.AvailableLocations[i].AppLocation.CountryCode = item.AppLocation.CountryCode
 			}
 			log.Debug("devAppContextsPOST: applicationLocationAvailability.AppInfo.AvailableLocations[i].AppLocation: ", applicationLocationAvailability.AppInfo.AvailableLocations[i].AppLocation)
 		} // End of 'for' statement
@@ -961,7 +957,7 @@ func appLocationAvailabilityPOST(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusCreated)
-	fmt.Fprintf(w, string(jsonResponse))
+	fmt.Fprint(w, string(jsonResponse))
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -999,4 +995,328 @@ func errHandlerProblemDetails(w http.ResponseWriter, error string, code int) {
 
 	w.WriteHeader(code)
 	fmt.Fprint(w, jsonResponse)
+}
+
+func getFilteredAppList(appName []string, appProvider []string, appSoftVersion []string, vendorId []string, serviceCont []string) (appList map[string]AppPackage) {
+	var filteredAppList map[string]AppPackage
+	// Apply criteria
+	if len(appName) != 0 {
+		filteredAppList = filterAppNames(appName)
+		log.Debug("GetApplicationListAppList: After appName, filteredAppList: ", filteredAppList)
+		if len(appProvider) != 0 && len(filteredAppList) != 0 {
+			filterExcludeAppProviders(appProvider, filteredAppList)
+			log.Debug("GetApplicationListAppList: After appProvider, filteredAppList: ", filteredAppList)
+		}
+		if len(appSoftVersion) != 0 && len(filteredAppList) != 0 {
+			filterExcludeAppSoftVersion(appSoftVersion, filteredAppList)
+			log.Debug("GetApplicationListAppList: After appSoftVersion, filteredAppList: ", filteredAppList)
+		}
+		// FIXME if len(vendorIds) != 0 && len(filteredAppList) != 0 {
+		if len(serviceCont) != 0 && len(filteredAppList) != 0 {
+			filterExcludeServiceConts(serviceCont, filteredAppList)
+			log.Debug("GetApplicationListAppList: After appSoftVersion, filteredAppList: ", filteredAppList)
+		}
+	} else if len(appProvider) != 0 {
+		filteredAppList = filterAppProviders(appProvider)
+		log.Debug("GetApplicationListAppList: After appProvider, filteredAppList: ", filteredAppList)
+		if len(appSoftVersion) != 0 && len(filteredAppList) != 0 {
+			filterExcludeAppSoftVersion(appSoftVersion, filteredAppList)
+			log.Debug("GetApplicationListAppList: After appSoftVersion, filteredAppList: ", filteredAppList)
+		}
+		// FIXME if len(vendorIds) != 0 && len(filteredAppList) != 0 {
+		if len(serviceCont) != 0 && len(filteredAppList) != 0 {
+			filterExcludeServiceConts(serviceCont, filteredAppList)
+			log.Debug("GetApplicationListAppList: After appSoftVersion, filteredAppList: ", filteredAppList)
+		}
+	} else if len(appSoftVersion) != 0 {
+		filteredAppList = filterAppSoftVersions(appSoftVersion)
+		// FIXME if len(vendorIds) != 0 && len(filteredAppList) != 0 {
+		if len(serviceCont) != 0 && len(filteredAppList) != 0 {
+			filterExcludeServiceConts(serviceCont, filteredAppList)
+			log.Debug("GetApplicationListAppList: After appSoftVersion, filteredAppList: ", filteredAppList)
+		}
+	} else {
+		return appDetails
+	}
+	return filteredAppList
+
+}
+
+func filterAppNames(appName []string) map[string]AppPackage {
+	filteredAppList := make(map[string]AppPackage)
+	for _, name := range appName {
+		log.Debug("filterAppNames: Processing appName: ", name)
+		// Remove quotes
+		if name != "" {
+			name = name[1 : len(name)-1] // Remove quotes
+		}
+		log.Debug("filterAppNames: After removing quotes: appName: ", name)
+		// Search for the entry
+		for _, appDetail := range appDetails {
+			if appDetail.App.AppInfo.AppName == name {
+				filteredAppList[name] = appDetail
+			}
+		} // End of 'for' statement
+	} // End of 'for' statement
+
+	return filteredAppList
+}
+
+func filterAppProviders(appProviders []string) map[string]AppPackage {
+	filteredAppList := make(map[string]AppPackage)
+	for _, appProvider := range appProviders {
+		log.Debug("filterAppProviders: Processing appProvider: ", appProvider)
+		// Remove quotes
+		if appProvider != "" {
+			appProvider = appProvider[1 : len(appProvider)-1] // Remove quotes
+		}
+		log.Debug("filterAppProviders: After removing quotes: appSoftVersion: ", appProvider)
+		// Search for the entry
+		for _, appDetail := range appDetails {
+			if appDetail.App.AppInfo.AppProvider == appProvider {
+				filteredAppList[appDetail.App.AppInfo.AppName] = appDetail
+			}
+		} // End of 'for' statement
+	} // End of 'for' statement
+
+	return filteredAppList
+}
+
+func filterAppSoftVersions(appSoftVersions []string) map[string]AppPackage {
+	filteredAppList := make(map[string]AppPackage)
+	for _, appSoftVersion := range appSoftVersions {
+		log.Debug("filterAppSoftVersions: Processing appSoftVersion: ", appSoftVersion)
+		// Remove quotes
+		if appSoftVersion != "" {
+			appSoftVersion = appSoftVersion[1 : len(appSoftVersion)-1] // Remove quotes
+		}
+		log.Debug("filterAppSoftVersions: After removing quotes: appSoftVersion: ", appSoftVersion)
+		// Search for the entry
+		for _, appDetail := range appDetails {
+			if appDetail.App.AppInfo.AppSoftVersion == appSoftVersion {
+				filteredAppList[appDetail.App.AppInfo.AppName] = appDetail
+			}
+		} // End of 'for' statement
+	} // End of 'for' statement
+
+	return filteredAppList
+}
+
+func filterExcludeAppProviders(appProviders []string, filteredAppList map[string]AppPackage) {
+	for _, appProvider := range appProviders {
+		log.Debug("filterExcludeAppProviders: Processing appProvider: ", appProvider)
+		// Remove quotes
+		if appProvider != "" {
+			appProvider = appProvider[1 : len(appProvider)-1] // Remove quotes
+		}
+		log.Debug("filterExcludeAppProviders: After removing quotes: appProvider: ", appProvider)
+		// Search for the entry
+		for _, item := range filteredAppList {
+			if item.App.AppInfo.AppProvider != appProvider {
+				log.Debug("filterExcludeAppProviders: Removing entry: ", item.App.AppInfo.AppName)
+				delete(filteredAppList, item.App.AppInfo.AppName)
+			}
+		} // End of 'for' statement
+	} // End of 'for' statement
+}
+
+func filterExcludeAppSoftVersion(appSoftVersions []string, filteredAppList map[string]AppPackage) {
+	for _, appSoftVersion := range appSoftVersions {
+		log.Debug("GetApplicationListAppList: Processing appProvider: ", appSoftVersion)
+		// Remove quotes
+		if appSoftVersion != "" {
+			appSoftVersion = appSoftVersion[1 : len(appSoftVersion)-1] // Remove quotes
+		}
+		log.Debug("GetApplicationListAppList: After removing quotes: appSoftVersion: ", appSoftVersion)
+		// Search for the entry
+		for _, item := range filteredAppList {
+			if item.App.AppInfo.AppSoftVersion != appSoftVersion {
+				log.Debug("GetApplicationListAppList: Removing entry: ", appSoftVersion)
+				delete(filteredAppList, item.App.AppInfo.AppName)
+			}
+		} // End of 'for' statement
+	} // End of 'for' statement
+}
+
+func filterExcludeServiceConts(serviceConts []string, filteredAppList map[string]AppPackage) {
+	for _, serviceCount := range serviceConts {
+		log.Debug("filterExcludeServiceConts: Processing serviceCount: ", serviceCount)
+		// Remove quotes
+		if serviceCount != "" {
+			serviceCount = serviceCount[1 : len(serviceCount)-1] // Remove quotes
+		}
+		log.Debug("filterExcludeServiceConts: After removing quotes: serviceCount: ", serviceCount)
+		svcCount, _ := strconv.ParseUint(serviceCount, 10, 32)
+		svcCount32 := int32(svcCount)
+		// Search for the entry
+		for _, item := range filteredAppList {
+			if item.App.AppInfo.AppCharcs != nil {
+				if item.App.AppInfo.AppCharcs.ServiceCont != 0 && item.App.AppInfo.AppCharcs.ServiceCont != svcCount32 {
+					delete(filteredAppList, item.App.AppInfo.AppName)
+					break
+				}
+			}
+		} // End of 'for' statement
+	} // End of 'for' statement
+}
+
+func CreateAppContext(appContext *AppContext) (app *AppContext, err error) {
+
+	// Sanity checks
+	if appContext == nil {
+		return nil, errors.New("CreateAppContext: Invalid input parameters")
+	}
+	app = appContext
+	if app.ContextId != "" { // ETSI GS MEC 016 Clause 6.2.3 Type: AppContext.
+		return nil, errors.New("ContextId shall not be set")
+	}
+	if app.AssociateDevAppId == "" { // ETSI GS MEC 016 Clause 6.2.3 Type: AppContext.
+		return nil, errors.New("Missing AssociateDevAppId")
+	}
+	if len(app.AppInfo.UserAppInstanceInfo) == 0 { // ETSI GS MEC 016 Clause 6.2.3 Type: AppContext.
+		return nil, errors.New("Missing at least one UserAppInstanceInfo item")
+	}
+	for _, item := range app.AppInfo.UserAppInstanceInfo {
+		if item.AppInstanceId != "" {
+			return nil, errors.New("UserAppInstanceInfo.AppInstanceId shall not be set")
+		}
+		if item.ReferenceURI != "" {
+			return nil, errors.New("UserAppInstanceInfo.ReferenceURI shall not be set")
+		}
+		// if len(item.AppLocation) > 1 {
+		// 	return nil, errors.New("Only one AppLocation item expected")
+		// }
+	} // End of 'for' statement
+
+	// When creating the context, instantiate the application
+	// Retrieve the MEC application description
+	appInfo := appDetails[app.AppInfo.AppDId]
+
+	log.Debug("CreateAppContext: appInfo ", appInfo)
+	log.Debug("CreateAppContext: appInfo.Cmd ", appInfo.Cmd)
+
+	appExecEntry, err := cmdExec(appInfo.Cmd)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+	log.Debug("Just ran subprocess ", strconv.Itoa(appExecEntry.cmd.Process.Pid))
+	targetIp := getOutboundIP()
+	log.Debug("CreateAppContext: targetIp: ", targetIp)
+
+	// Create the AppContext
+	// app.ContextId = new(string)
+	app.ContextId = strconv.Itoa(appExecEntry.cmd.Process.Pid)
+	// Update
+	for i := range app.AppInfo.UserAppInstanceInfo {
+		app.AppInfo.UserAppInstanceInfo[i].AppInstanceId = app.ContextId
+		log.Debug("CreateAppContext: app.AppInfo.AppName: ", app.AppInfo.AppName)
+		app.AppInfo.UserAppInstanceInfo[i].ReferenceURI = string(hostUrl.String() + "/" + sandboxName + "/" + app.AppInfo.AppName)
+	} // End of 'for' statement
+	log.Debug("CreateAppContext: *app.ContextId: ", app.ContextId)
+	log.Debug("CreateAppContext: app.AppInfo: ", app.AppInfo)
+	log.Debug("CreateAppContext: app.AppInfo.UserAppInstanceInfo: ", app.AppInfo.UserAppInstanceInfo)
+
+	// Create AppContext entries
+	appContextDetails[app.ContextId] = *app
+
+	process, err := os.FindProcess(int(appExecEntry.cmd.Process.Pid))
+	if err != nil {
+		log.Error(err.Error())
+	}
+	log.Debug("Process info: ", process)
+	appExecEntries[appExecEntry.cmd.Process.Pid] = appExecEntry
+	log.Debug("appExecEntries ", appExecEntries)
+	appContexts[app.ContextId] = *app
+	log.Debug("appContexts ", appContexts)
+
+	return app, nil
+}
+
+func PutAppContext(appContext AppContext) (err error) {
+
+	// Sanity checks
+	if appContext.ContextId == "" { // ETSI GS MEC 016 Clause 6.2.3 Type: AppContext.
+		return errors.New("ContextId shall be set")
+	}
+	log.Debug("PutAppContext: appContext: ", appContext)
+
+	// Retrieve the existing AppContext
+	curAppContext := appContextDetails[appContext.ContextId]
+	log.Debug("PutAppContext: curAppContext: ", curAppContext)
+
+	// Update the curAppContext
+	update := false
+	if curAppContext.CallbackReference != appContext.CallbackReference {
+		curAppContext.CallbackReference = appContext.CallbackReference
+		update = true
+	}
+
+	if update {
+		appContextDetails[appContext.ContextId] = curAppContext
+	}
+
+	return nil
+}
+
+func DeleteAppContext(appContextId string) (err error) {
+
+	// Validate input
+	if appContextId == "" {
+		err = errors.New("Missing appContextId")
+		return err
+	}
+
+	// When deleting the context, un-instantiate the application
+	// TODO meep-dai-mgr could be partially enhanced with MEC-10-2 Clauses 6.2.1.2 Type: AppD and Lifecycle Mgmt
+	// Un-instantiate the MEC application process
+	pid, err := strconv.ParseInt(appContextId, 10, 64) // FIXME To be enhanced to get outputs
+	if err != nil {
+		log.Error(err.Error())
+		return err
+	}
+	// TODO Check if the process is running
+
+	terminatePidProcess(int(pid))
+	log.Debug("Just terminated subprocess ", strconv.Itoa(int(pid)))
+	// Delete entries
+	delete(appExecEntries, int(pid))
+	delete(appContexts, strconv.Itoa(int(pid)))
+	delete(appContextDetails, appContextId)
+
+	return nil
+}
+
+func PostApplicationLocationAvailability(applicationLocationAvailability ApplicationLocationAvailability) (applicationLocationAvailability_ ApplicationLocationAvailability, err error) {
+
+	// Retrieve the AppInfo data for the specified application
+	var appNames = []string{strconv.Quote(applicationLocationAvailability.AppInfo.AppName)}
+	var appProviders = []string{strconv.Quote(applicationLocationAvailability.AppInfo.AppProvider)}
+	var appSoftVersions []string
+	if applicationLocationAvailability.AppInfo.AppSoftVersion != "" {
+		appSoftVersions = []string{strconv.Quote(applicationLocationAvailability.AppInfo.AppSoftVersion)}
+	}
+	var vendorIds []string    // FIXME To be done
+	var serviceConts []string // FIXME To be done
+	appList := getFilteredAppList(appNames, appProviders, appSoftVersions, vendorIds, serviceConts)
+
+	applicationLocationAvailability_ = applicationLocationAvailability
+
+	// applicationLocationAvailability_.AppInfo.AvailableLocations = []ApplicationLocationAvailabilityAppInfoAvailableLocations
+
+	for _, item := range appList {
+		if item.App.AppInfo.AppName != applicationLocationAvailability.AppInfo.AppName {
+			err = errors.New("Wrong application found for " + applicationLocationAvailability.AppInfo.AppName + "- " + item.App.AppInfo.AppName)
+			log.Error(err.Error())
+			return applicationLocationAvailability_, err
+		}
+
+		availLoc := ApplicationLocationAvailabilityAppInfoAvailableLocations{
+			AppLocation: &item.App.AppInfo.AppLocation[0],
+		}
+		applicationLocationAvailability_.AppInfo.AvailableLocations = append(applicationLocationAvailability_.AppInfo.AvailableLocations, availLoc)
+		break
+	} // End of 'for' statement
+
+	return applicationLocationAvailability_, nil
 }

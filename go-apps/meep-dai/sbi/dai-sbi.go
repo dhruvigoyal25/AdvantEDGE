@@ -34,7 +34,7 @@ import (
 
 const moduleName string = "meep-dai-sbi"
 
-var metricStore *met.MetricStore
+// var metricStore *met.MetricStore
 var redisAddr string = "meep-redis-master.default.svc.cluster.local:6379"
 var influxAddr string = "http://meep-influxdb.default.svc.cluster.local:8086"
 
@@ -180,12 +180,12 @@ func Init(cfg SbiCfg) (err error) {
 	}
 	log.Info("Created new DAI DB tables")
 
-	err = sbi.daiMgr.LoadOnboardedMecApplications(cfg.OnboardedMecApplicationsFolder)
-	if err != nil {
-		log.Error("Failed to load simulating data: ", err)
-		return err
-	}
-	log.Info("Created existing application")
+	// err = sbi.daiMgr.LoadOnboardedMecApplications(cfg.OnboardedMecApplicationsFolder)
+	// if err != nil {
+	// 	log.Error("Failed to load simulating data: ", err)
+	// 	return err
+	// }
+	// log.Info("Created existing application")
 
 	// Initialize service
 	processActiveScenarioUpdate()
@@ -307,7 +307,7 @@ func processActiveScenarioUpdate() {
 		sbi.scenarioName = scenarioName
 		var err error
 
-		metricStore, err = met.NewMetricStore(scenarioName, sbi.sandboxName, influxAddr, redisAddr)
+		_, err = met.NewMetricStore(scenarioName, sbi.sandboxName, influxAddr, redisAddr)
 		if err != nil {
 			log.Error("Failed connection to metric-store: ", err)
 		}

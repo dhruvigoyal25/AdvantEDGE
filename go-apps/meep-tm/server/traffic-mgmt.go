@@ -47,7 +47,7 @@ var Traffic_Mgmt_DB = 0
 var instanceId string
 var instanceName string
 
-var metricStore *met.MetricStore
+// var metricStore *met.MetricStore
 var mutex sync.Mutex
 var rc *redis.Connector
 var hostUrl *url.URL
@@ -301,7 +301,7 @@ func processActiveScenarioUpdate() {
 
 	if scenarioName != currScenarioName {
 		currScenarioName = scenarioName
-		metricStore, err = met.NewMetricStore(scenarioName, sandboxName, influxAddr, redisAddr)
+		_, err = met.NewMetricStore(scenarioName, sandboxName, influxAddr, redisAddr)
 		if err != nil {
 			log.Error("Failed connection to metric-store: ", err)
 		}

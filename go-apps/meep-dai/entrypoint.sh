@@ -6,6 +6,12 @@ echo "MEEP_SANDBOX_NAME: ${MEEP_SANDBOX_NAME}"
 echo "MEEP_MEP_NAME: ${MEEP_MEP_NAME}"
 echo "MEEP_CODECOV: ${MEEP_CODECOV}"
 
+mkdir -p /onboardedapp-vol/
+mv onboarded-demo.json /onboardedapp-vol/onboarded-demo4.json
+
+mkdir -p /onboardedapp/onboarded-demo/
+mv onboarded-demo4  /onboardedapp/onboarded-demo/onboarded-demo4
+
 if [[ ! -z "${MEEP_MEP_NAME}" ]]; then
     svcPath="${MEEP_SANDBOX_NAME}/${MEEP_MEP_NAME}"
 else

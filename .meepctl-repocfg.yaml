@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#    http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,7 +38,7 @@ repo:
     # platform ingress configuration
     ingress:
       # host name
-      host: my-platform-fqdn
+      host: 10.3.16.73
       # enable https only (redirect http requests to https port)
       https-only: false
       # bind to host ports (true) or node ports (false)
@@ -48,9 +48,9 @@ repo:
       # https config
       https-port: 443
       # certificate authority (none|self-signed|lets-encrypt) default: none
-      ca: self-signed
+      ca: lets-encrypt
       # lets-encrypt production server (true) or staging server (false)
-      le-server-prod: false
+      le-server-prod: true
 
     # authentication & authorization config
     auth:
@@ -73,7 +73,7 @@ repo:
         # access token url
         token-url: https://github.com/login/oauth/access_token
         # OAuth redirect URI
-        redirect-uri: https://my-platform-fqdn/auth/v1/authorize
+        redirect-uri: https://mec-platform.etsi.org/auth/v1/authorize
         # OAuth k8s secret (data: client-id, secret)
         secret: meep-oauth-github
       # GitLab OAuth provider config
@@ -85,7 +85,7 @@ repo:
         # access token url
         token-url: https://gitlab.com/oauth/token
         # OAuth redirect URI
-        redirect-uri: https://my-platform-fqdn/auth/v1/authorize
+        redirect-uri: https://mec-platform.etsi.org/auth/v1/authorize
         # GitLab api url
         # api-url: https://gitlab.com
         # OAuth k8s secret (data: client-id, secret)
@@ -275,7 +275,7 @@ repo:
         lint: true
         # list of dependencies pods to monitor
         dependency-pods:
-          # - meep-cert-manager
+          - meep-cert-manager
           - meep-couchdb
           - meep-docker-registry
           - meep-grafana
@@ -298,7 +298,7 @@ repo:
           - meep-loc-serv
           - meep-metrics-engine
           - meep-mg-manager
-          - meep-rnis          
+          - meep-rnis
           - meep-dai
           - meep-tm
           - meep-wais
@@ -780,7 +780,7 @@ repo:
         # resources available to docker container image
         docker-data:
           # location of entry script
-          'entrypoint.sh': go-apps/meep-tm/entrypoint.sh        
+          'entrypoint.sh': go-apps/meep-tm/entrypoint.sh
       meep-wais:
         # location of source code
         src: go-apps/meep-wais
@@ -878,7 +878,11 @@ repo:
         # resources available to docker container image
         docker-data:
           # location of entry script
-          'entrypoint.sh': go-apps/meep-dai/entrypoint.sh          
+          'entrypoint.sh': go-apps/meep-dai/entrypoint.sh
+          'onboarded-demo.json': examples/demo4-ue/src/onboarded-demo/onboarded-demo4.json
+          'onboarded-demo-test1.json': examples/demo4-ue/src/onboarded-demo/onboarded-demo-test1.json
+          'onboarded-demo4': examples/demo4-ue/bin/onboarded-demo/onboarded-demo4
+          
 
   #------------------------------
   #  Dependencies
@@ -890,7 +894,7 @@ repo:
       # enable meepctl dockerize -> deps are never dockerized
       dockerize: false
       # enable meepctl deploy/delete
-      deploy: false
+      deploy: true
       # location of deployment chart
       chart: charts/cert-manager
       # user supplied value file located @ .meep/user/values (use below file name)
@@ -1053,7 +1057,7 @@ repo:
         # location of source code
         src: go-packages/meep-bwm-client
         # supports linting
-        lint: false        
+        lint: false
       meep-couch:
         # location of source code
         src: go-packages/meep-couch
@@ -1138,7 +1142,7 @@ repo:
         # location of source code
         src: go-packages/meep-mts-client
         # supports linting
-        lint: false        
+        lint: false
       meep-mq:
         # location of source code
         src: go-packages/meep-mq
@@ -1233,7 +1237,7 @@ repo:
         # location of source code
         src: go-packages/meep-dai-client
         # supports linting
-        lint: false        
+        lint: false
 
     # Javascript Packages
     js-packages:

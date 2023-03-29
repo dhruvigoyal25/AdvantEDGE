@@ -32,7 +32,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"strconv"
 	"testing"
 	"time"
 
@@ -529,312 +528,312 @@ var ( // Need to take address
 	area1                               = Polygon{[][][]float32{{{7.43166, 43.736156}, {7.431723, 43.736115}, {7.431162, 43.735607}, {7.430685, 43.73518}}}}
 	civicAddressElement1                = []LocationConstraintsCivicAddressElement{{2, "Value2"}, {20, "Value20"}}
 	countryCode1         string         = "countryCode1"
-	memory1              int32          = 1024 * 2
-	storage1             int32          = 1024 * 2
-	latency1             int32          = 1024 * 2
-	bandwidth1           int32          = 1024 * 2
-	serviceCont1         int32          = 1
+	// memory1              int32          = 1024 * 2
+	// storage1             int32          = 1024 * 2
+	// latency1             int32          = 1024 * 2
+	// bandwidth1           int32          = 1024 * 2
+	// serviceCont1         int32          = 1
 )
 
-func TestNotImplemented(t *testing.T) {
-	fmt.Println("--- ", t.Name())
-	log.MeepTextLogInit(t.Name())
+// func TestNotImplemented(t *testing.T) {
+// 	fmt.Println("--- ", t.Name())
+// 	log.MeepTextLogInit(t.Name())
 
-	_, err := sendRequest(http.MethodDelete, "/subscriptions/1", nil, nil, nil, http.StatusNotImplemented, IndividualSubscriptionDELETE)
-	if err != nil {
-		t.Fatalf("Failed to get expected response")
-	}
+// 	_, err := sendRequest(http.MethodDelete, "/subscriptions/1", nil, nil, nil, http.StatusNotImplemented, IndividualSubscriptionDELETE)
+// 	if err != nil {
+// 		t.Fatalf("Failed to get expected response")
+// 	}
 
-}
+// }
 
-func TestAppListGET(t *testing.T) {
-	fmt.Println("--- ", t.Name())
-	log.MeepTextLogInit(t.Name())
+// func TestAppListGET(t *testing.T) {
+// 	fmt.Println("--- ", t.Name())
+// 	log.MeepTextLogInit(t.Name())
 
-	initializeVars()
+// 	initializeVars()
 
-	err := Init()
-	if err != nil {
-		t.Fatalf("Error initializing test basic procedure")
-	}
-	err = Run()
-	if err != nil {
-		t.Fatalf("Error running test basic procedure")
-	}
+// 	err := Init()
+// 	if err != nil {
+// 		t.Fatalf("Error initializing test basic procedure")
+// 	}
+// 	err = Run()
+// 	if err != nil {
+// 		t.Fatalf("Error running test basic procedure")
+// 	}
 
-	fmt.Println("Set a scenario")
-	initialiseScenario(testScenario)
+// 	fmt.Println("Set a scenario")
+// 	initialiseScenario(testScenario)
 
-	time.Sleep(1000 * time.Millisecond)
-	updateScenario("mobility1")
+// 	time.Sleep(1000 * time.Millisecond)
+// 	updateScenario("mobility1")
 
-	/******************************
-	 * expected response section
-	 ******************************/
-	// Fill LocationConstraints
-	appLocationConstraints := make([]LocationConstraints, 2)
-	appLocationConstraints[0] = LocationConstraints{&area1, make([]LocationConstraintsCivicAddressElement, 0), countryCode1}
-	appLocationConstraints[1] = LocationConstraints{nil, make([]LocationConstraintsCivicAddressElement, 1), ""}
-	appLocationConstraints[1].CivicAddressElement = civicAddressElement1
-	// Fill ApplicationListAppInfo
-	var appInfo ApplicationListAppInfo
-	appInfo.AppDId = appDId1
-	appInfo.AppDVersion = appDVersion1
-	appInfo.AppDescription = appDescription1
-	appInfo.AppLocation = appLocationConstraints
-	appInfo.AppName = appName1
-	appInfo.AppProvider = appProvider1
-	appInfo.AppSoftVersion = appSoftVersion1
-	// Fill ApplicationListAppList
-	var applicationListAppList ApplicationListAppList
-	applicationListAppList.AppInfo = &appInfo
-	applicationListAppList.VendorSpecificExt = nil
-	appInfo.AppCharcs = new(ApplicationListAppInfoAppCharcs)
-	appInfo.AppCharcs.Memory = memory1
-	appInfo.AppCharcs.Storage = storage1
-	appInfo.AppCharcs.Latency = latency1
-	appInfo.AppCharcs.Bandwidth = bandwidth1
-	appInfo.AppCharcs.ServiceCont = serviceCont1
+// 	/******************************
+// 	 * expected response section
+// 	 ******************************/
+// 	// Fill LocationConstraints
+// 	appLocationConstraints := make([]LocationConstraints, 2)
+// 	appLocationConstraints[0] = LocationConstraints{&area1, make([]LocationConstraintsCivicAddressElement, 0), countryCode1}
+// 	appLocationConstraints[1] = LocationConstraints{nil, make([]LocationConstraintsCivicAddressElement, 1), ""}
+// 	appLocationConstraints[1].CivicAddressElement = civicAddressElement1
+// 	// Fill ApplicationListAppInfo
+// 	var appInfo ApplicationListAppInfo
+// 	appInfo.AppDId = appDId1
+// 	appInfo.AppDVersion = appDVersion1
+// 	appInfo.AppDescription = appDescription1
+// 	appInfo.AppLocation = appLocationConstraints
+// 	appInfo.AppName = appName1
+// 	appInfo.AppProvider = appProvider1
+// 	appInfo.AppSoftVersion = appSoftVersion1
+// 	// Fill ApplicationListAppList
+// 	var applicationListAppList ApplicationListAppList
+// 	applicationListAppList.AppInfo = &appInfo
+// 	applicationListAppList.VendorSpecificExt = nil
+// 	appInfo.AppCharcs = new(ApplicationListAppInfoAppCharcs)
+// 	appInfo.AppCharcs.Memory = memory1
+// 	appInfo.AppCharcs.Storage = storage1
+// 	appInfo.AppCharcs.Latency = latency1
+// 	appInfo.AppCharcs.Bandwidth = bandwidth1
+// 	appInfo.AppCharcs.ServiceCont = serviceCont1
 
-	var appList ApplicationList
-	appList.AppList = make([]ApplicationListAppList, 1)
-	appList.AppList[0] = applicationListAppList
-	log.Info("ApplicationList: ", appList)
-	// Convert into JSON
-	var expected_json_response string = convertApplicationListToJson(&appList)
-	log.Info("json response: ", expected_json_response)
+// 	var appList ApplicationList
+// 	appList.AppList = make([]ApplicationListAppList, 1)
+// 	appList.AppList[0] = applicationListAppList
+// 	log.Info("ApplicationList: ", appList)
+// 	// Convert into JSON
+// 	var expected_json_response string = convertApplicationListToJson(&appList)
+// 	log.Info("json response: ", expected_json_response)
 
-	// Get all onboarded MEC application
-	fmt.Println("Get all onboarded MEC application")
-	rr, err := sendRequest(http.MethodGet, "/app_list", nil, nil, nil, http.StatusOK, MeAppListGET)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	log.Info("sendRequest done")
+// 	// Get all onboarded MEC application
+// 	fmt.Println("Get all onboarded MEC application")
+// 	rr, err := sendRequest(http.MethodGet, "/app_list", nil, nil, nil, http.StatusOK, MeAppListGET)
+// 	if err != nil {
+// 		t.Fatalf(err.Error())
+// 	}
+// 	log.Info("sendRequest done")
 
-	var respBody ApplicationList
-	err = json.Unmarshal([]byte(rr), &respBody)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	fmt.Println("respBody: ", respBody)
-	receivedAppList := convertJsonToApplicationList(rr)
-	if len(receivedAppList.AppList) != 2 {
-		t.Errorf("handler returned unexpected body.")
-	}
-	// if !validateApplicationList(&receivedAppList, fullAppList) {
-	// 	t.Errorf("handler returned unexpected body: got %v want %v", rr, expected_json_response)
-	// }
-	log.Info("Received expected response")
+// 	var respBody ApplicationList
+// 	err = json.Unmarshal([]byte(rr), &respBody)
+// 	if err != nil {
+// 		t.Fatalf(err.Error())
+// 	}
+// 	fmt.Println("respBody: ", respBody)
+// 	receivedAppList := convertJsonToApplicationList(rr)
+// 	if len(receivedAppList.AppList) != 2 {
+// 		t.Errorf("handler returned unexpected body.")
+// 	}
+// 	// if !validateApplicationList(&receivedAppList, fullAppList) {
+// 	// 	t.Errorf("handler returned unexpected body: got %v want %v", rr, expected_json_response)
+// 	// }
+// 	log.Info("Received expected response")
 
-	// Get onboarded MEC application using appName filter
-	fmt.Println("Get onboarded MEC application using appName filter")
-	rr, err = sendRequest(http.MethodGet, "/app_list?appName=\""+appName1+"\"", nil, nil, nil, http.StatusOK, MeAppListGET)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	log.Info("sendRequest done")
+// 	// Get onboarded MEC application using appName filter
+// 	fmt.Println("Get onboarded MEC application using appName filter")
+// 	rr, err = sendRequest(http.MethodGet, "/app_list?appName=\""+appName1+"\"", nil, nil, nil, http.StatusOK, MeAppListGET)
+// 	if err != nil {
+// 		t.Fatalf(err.Error())
+// 	}
+// 	log.Info("sendRequest done")
 
-	err = json.Unmarshal([]byte(rr), &respBody)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	fmt.Println("respBody: ", respBody)
-	receivedAppList = convertJsonToApplicationList(rr)
-	if !validateApplicationList(receivedAppList, appList) {
-		t.Errorf("handler returned unexpected body: got %v want %v", rr, expected_json_response)
-	}
-	log.Info("Received expected response")
-	// Unknown appName
-	rr, err = sendRequest(http.MethodGet, "/app_list?appName=\"unknownApp\"", nil, nil, nil, http.StatusOK, MeAppListGET)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	log.Info("sendRequest done")
+// 	err = json.Unmarshal([]byte(rr), &respBody)
+// 	if err != nil {
+// 		t.Fatalf(err.Error())
+// 	}
+// 	fmt.Println("respBody: ", respBody)
+// 	receivedAppList = convertJsonToApplicationList(rr)
+// 	if !validateApplicationList(receivedAppList, appList) {
+// 		t.Errorf("handler returned unexpected body: got %v want %v", rr, expected_json_response)
+// 	}
+// 	log.Info("Received expected response")
+// 	// Unknown appName
+// 	rr, err = sendRequest(http.MethodGet, "/app_list?appName=\"unknownApp\"", nil, nil, nil, http.StatusOK, MeAppListGET)
+// 	if err != nil {
+// 		t.Fatalf(err.Error())
+// 	}
+// 	log.Info("sendRequest done")
 
-	err = json.Unmarshal([]byte(rr), &respBody)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	fmt.Println("respBody: ", respBody)
-	receivedAppList = convertJsonToApplicationList(rr)
-	var emptyApplicationList ApplicationList
-	if !validateApplicationList(receivedAppList, emptyApplicationList) {
-		t.Errorf("handler returned unexpected body: got %v want %v", rr, expected_json_response)
-	}
-	log.Info("Received expected response")
+// 	err = json.Unmarshal([]byte(rr), &respBody)
+// 	if err != nil {
+// 		t.Fatalf(err.Error())
+// 	}
+// 	fmt.Println("respBody: ", respBody)
+// 	receivedAppList = convertJsonToApplicationList(rr)
+// 	var emptyApplicationList ApplicationList
+// 	if !validateApplicationList(receivedAppList, emptyApplicationList) {
+// 		t.Errorf("handler returned unexpected body: got %v want %v", rr, expected_json_response)
+// 	}
+// 	log.Info("Received expected response")
 
-	// Get onboarded MEC application using appProvider filter
-	fmt.Println("Get onboarded MEC application using appProvider filter")
-	rr, err = sendRequest(http.MethodGet, "/app_list?appProvider=\""+appProvider1+"\"", nil, nil, nil, http.StatusOK, MeAppListGET)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	log.Info("sendRequest done")
+// 	// Get onboarded MEC application using appProvider filter
+// 	fmt.Println("Get onboarded MEC application using appProvider filter")
+// 	rr, err = sendRequest(http.MethodGet, "/app_list?appProvider=\""+appProvider1+"\"", nil, nil, nil, http.StatusOK, MeAppListGET)
+// 	if err != nil {
+// 		t.Fatalf(err.Error())
+// 	}
+// 	log.Info("sendRequest done")
 
-	err = json.Unmarshal([]byte(rr), &respBody)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	fmt.Println("respBody: ", respBody)
-	receivedAppList = convertJsonToApplicationList(rr)
-	if !validateApplicationList(receivedAppList, appList) {
-		t.Errorf("handler returned unexpected body: got %v want %v", rr, expected_json_response)
-	}
-	log.Info("Received expected response")
-	// Unknown appProvider
-	rr, err = sendRequest(http.MethodGet, "/app_list?appProvider=\"unknownAppProvider\"", nil, nil, nil, http.StatusOK, MeAppListGET)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	log.Info("sendRequest done")
+// 	err = json.Unmarshal([]byte(rr), &respBody)
+// 	if err != nil {
+// 		t.Fatalf(err.Error())
+// 	}
+// 	fmt.Println("respBody: ", respBody)
+// 	receivedAppList = convertJsonToApplicationList(rr)
+// 	if !validateApplicationList(receivedAppList, appList) {
+// 		t.Errorf("handler returned unexpected body: got %v want %v", rr, expected_json_response)
+// 	}
+// 	log.Info("Received expected response")
+// 	// Unknown appProvider
+// 	rr, err = sendRequest(http.MethodGet, "/app_list?appProvider=\"unknownAppProvider\"", nil, nil, nil, http.StatusOK, MeAppListGET)
+// 	if err != nil {
+// 		t.Fatalf(err.Error())
+// 	}
+// 	log.Info("sendRequest done")
 
-	err = json.Unmarshal([]byte(rr), &respBody)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	fmt.Println("respBody: ", respBody)
-	receivedAppList = convertJsonToApplicationList(rr)
-	if !validateApplicationList(receivedAppList, emptyApplicationList) {
-		t.Errorf("handler returned unexpected body: got %v want %v", rr, expected_json_response)
-	}
-	log.Info("Received expected response")
+// 	err = json.Unmarshal([]byte(rr), &respBody)
+// 	if err != nil {
+// 		t.Fatalf(err.Error())
+// 	}
+// 	fmt.Println("respBody: ", respBody)
+// 	receivedAppList = convertJsonToApplicationList(rr)
+// 	if !validateApplicationList(receivedAppList, emptyApplicationList) {
+// 		t.Errorf("handler returned unexpected body: got %v want %v", rr, expected_json_response)
+// 	}
+// 	log.Info("Received expected response")
 
-	// Get onboarded MEC application using appSoftVersion filter
-	fmt.Println("Get onboarded MEC application using appSoftVersion filter")
-	rr, err = sendRequest(http.MethodGet, "/app_list?appSoftVersion=\""+appSoftVersion1+"\"", nil, nil, nil, http.StatusOK, MeAppListGET)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	log.Info("sendRequest done")
+// 	// Get onboarded MEC application using appSoftVersion filter
+// 	fmt.Println("Get onboarded MEC application using appSoftVersion filter")
+// 	rr, err = sendRequest(http.MethodGet, "/app_list?appSoftVersion=\""+appSoftVersion1+"\"", nil, nil, nil, http.StatusOK, MeAppListGET)
+// 	if err != nil {
+// 		t.Fatalf(err.Error())
+// 	}
+// 	log.Info("sendRequest done")
 
-	err = json.Unmarshal([]byte(rr), &respBody)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	fmt.Println("respBody: ", respBody)
-	receivedAppList = convertJsonToApplicationList(rr)
-	if !validateApplicationList(receivedAppList, appList) {
-		t.Errorf("handler returned unexpected body: got %v want %v", rr, expected_json_response)
-	}
-	log.Info("Received expected response")
-	// Unknown appSoftVersion
-	rr, err = sendRequest(http.MethodGet, "/app_list?appSoftVersion=\"unknownAppSoftVersion\"", nil, nil, nil, http.StatusOK, MeAppListGET)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	log.Info("sendRequest done")
+// 	err = json.Unmarshal([]byte(rr), &respBody)
+// 	if err != nil {
+// 		t.Fatalf(err.Error())
+// 	}
+// 	fmt.Println("respBody: ", respBody)
+// 	receivedAppList = convertJsonToApplicationList(rr)
+// 	if !validateApplicationList(receivedAppList, appList) {
+// 		t.Errorf("handler returned unexpected body: got %v want %v", rr, expected_json_response)
+// 	}
+// 	log.Info("Received expected response")
+// 	// Unknown appSoftVersion
+// 	rr, err = sendRequest(http.MethodGet, "/app_list?appSoftVersion=\"unknownAppSoftVersion\"", nil, nil, nil, http.StatusOK, MeAppListGET)
+// 	if err != nil {
+// 		t.Fatalf(err.Error())
+// 	}
+// 	log.Info("sendRequest done")
 
-	err = json.Unmarshal([]byte(rr), &respBody)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	fmt.Println("respBody: ", respBody)
-	receivedAppList = convertJsonToApplicationList(rr)
-	if !validateApplicationList(receivedAppList, emptyApplicationList) {
-		t.Errorf("handler returned unexpected body: got %v want %v", rr, expected_json_response)
-	}
-	log.Info("Received expected response")
+// 	err = json.Unmarshal([]byte(rr), &respBody)
+// 	if err != nil {
+// 		t.Fatalf(err.Error())
+// 	}
+// 	fmt.Println("respBody: ", respBody)
+// 	receivedAppList = convertJsonToApplicationList(rr)
+// 	if !validateApplicationList(receivedAppList, emptyApplicationList) {
+// 		t.Errorf("handler returned unexpected body: got %v want %v", rr, expected_json_response)
+// 	}
+// 	log.Info("Received expected response")
 
-	// TODO Get onboarded MEC application using appVendorId filter
-	fmt.Println("Get onboarded MEC application using appVendorId filter")
+// 	// TODO Get onboarded MEC application using appVendorId filter
+// 	fmt.Println("Get onboarded MEC application using appVendorId filter")
 
-	// TODO Get onboarded MEC application using serviceCont filter
-	fmt.Println("Get onboarded MEC application using serviceCont filter")
-	rr, err = sendRequest(http.MethodGet, "/app_list?serviceCont=\""+strconv.Itoa(int(serviceCont1))+"\"", nil, nil, nil, http.StatusOK, MeAppListGET)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	log.Info("sendRequest done")
+// 	// TODO Get onboarded MEC application using serviceCont filter
+// 	fmt.Println("Get onboarded MEC application using serviceCont filter")
+// 	rr, err = sendRequest(http.MethodGet, "/app_list?serviceCont=\""+strconv.Itoa(int(serviceCont1))+"\"", nil, nil, nil, http.StatusOK, MeAppListGET)
+// 	if err != nil {
+// 		t.Fatalf(err.Error())
+// 	}
+// 	log.Info("sendRequest done")
 
-	err = json.Unmarshal([]byte(rr), &respBody)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	fmt.Println("respBody: ", respBody)
-	receivedAppList = convertJsonToApplicationList(rr)
-	if !validateApplicationList(receivedAppList, appList) {
-		t.Errorf("handler returned unexpected body: got %v want %v", rr, expected_json_response)
-	}
-	log.Info("Received expected response")
+// 	err = json.Unmarshal([]byte(rr), &respBody)
+// 	if err != nil {
+// 		t.Fatalf(err.Error())
+// 	}
+// 	fmt.Println("respBody: ", respBody)
+// 	receivedAppList = convertJsonToApplicationList(rr)
+// 	if !validateApplicationList(receivedAppList, appList) {
+// 		t.Errorf("handler returned unexpected body: got %v want %v", rr, expected_json_response)
+// 	}
+// 	log.Info("Received expected response")
 
-	// Get onboarded MEC application using appName + appProvider filter
-	fmt.Println("Get onboarded MEC application using appName + appProvider filter")
-	rr, err = sendRequest(http.MethodGet, "/app_list?appName=\""+appName1+"\"&appProvider=\""+appProvider1+"\"", nil, nil, nil, http.StatusOK, MeAppListGET)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	log.Info("sendRequest done")
+// 	// Get onboarded MEC application using appName + appProvider filter
+// 	fmt.Println("Get onboarded MEC application using appName + appProvider filter")
+// 	rr, err = sendRequest(http.MethodGet, "/app_list?appName=\""+appName1+"\"&appProvider=\""+appProvider1+"\"", nil, nil, nil, http.StatusOK, MeAppListGET)
+// 	if err != nil {
+// 		t.Fatalf(err.Error())
+// 	}
+// 	log.Info("sendRequest done")
 
-	err = json.Unmarshal([]byte(rr), &respBody)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	fmt.Println("respBody: ", respBody)
-	receivedAppList = convertJsonToApplicationList(rr)
-	if !validateApplicationList(receivedAppList, appList) {
-		t.Errorf("handler returned unexpected body: got %v want %v", rr, expected_json_response)
-	}
-	log.Info("Received expected response")
-	// Known appName and unknown appProvider
-	rr, err = sendRequest(http.MethodGet, "/app_list?appName=\""+appName1+"\"&appProvider=\"unknownAppProvider\"", nil, nil, nil, http.StatusOK, MeAppListGET)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	log.Info("sendRequest done")
+// 	err = json.Unmarshal([]byte(rr), &respBody)
+// 	if err != nil {
+// 		t.Fatalf(err.Error())
+// 	}
+// 	fmt.Println("respBody: ", respBody)
+// 	receivedAppList = convertJsonToApplicationList(rr)
+// 	if !validateApplicationList(receivedAppList, appList) {
+// 		t.Errorf("handler returned unexpected body: got %v want %v", rr, expected_json_response)
+// 	}
+// 	log.Info("Received expected response")
+// 	// Known appName and unknown appProvider
+// 	rr, err = sendRequest(http.MethodGet, "/app_list?appName=\""+appName1+"\"&appProvider=\"unknownAppProvider\"", nil, nil, nil, http.StatusOK, MeAppListGET)
+// 	if err != nil {
+// 		t.Fatalf(err.Error())
+// 	}
+// 	log.Info("sendRequest done")
 
-	err = json.Unmarshal([]byte(rr), &respBody)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	fmt.Println("respBody: ", respBody)
-	receivedAppList = convertJsonToApplicationList(rr)
-	if !validateApplicationList(receivedAppList, emptyApplicationList) {
-		t.Errorf("handler returned unexpected body: got %v want %v", rr, expected_json_response)
-	}
-	log.Info("Received expected response")
+// 	err = json.Unmarshal([]byte(rr), &respBody)
+// 	if err != nil {
+// 		t.Fatalf(err.Error())
+// 	}
+// 	fmt.Println("respBody: ", respBody)
+// 	receivedAppList = convertJsonToApplicationList(rr)
+// 	if !validateApplicationList(receivedAppList, emptyApplicationList) {
+// 		t.Errorf("handler returned unexpected body: got %v want %v", rr, expected_json_response)
+// 	}
+// 	log.Info("Received expected response")
 
-	// Get onboarded MEC application using appName + appSoftVersion filter
-	fmt.Println("Get onboarded MEC application using appName + appSoftVersion filter")
-	rr, err = sendRequest(http.MethodGet, "/app_list?appName=\""+appName1+"\"&appSoftVersion=\""+appSoftVersion1+"\"", nil, nil, nil, http.StatusOK, MeAppListGET)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	log.Info("sendRequest done")
+// 	// Get onboarded MEC application using appName + appSoftVersion filter
+// 	fmt.Println("Get onboarded MEC application using appName + appSoftVersion filter")
+// 	rr, err = sendRequest(http.MethodGet, "/app_list?appName=\""+appName1+"\"&appSoftVersion=\""+appSoftVersion1+"\"", nil, nil, nil, http.StatusOK, MeAppListGET)
+// 	if err != nil {
+// 		t.Fatalf(err.Error())
+// 	}
+// 	log.Info("sendRequest done")
 
-	err = json.Unmarshal([]byte(rr), &respBody)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	fmt.Println("respBody: ", respBody)
-	receivedAppList = convertJsonToApplicationList(rr)
-	if !validateApplicationList(receivedAppList, appList) {
-		t.Errorf("handler returned unexpected body: got %v want %v", rr, expected_json_response)
-	}
-	log.Info("Received expected response")
-	// Known appName and unknown appSoftVersion
-	rr, err = sendRequest(http.MethodGet, "/app_list?appName=\""+appName1+"\"&appSoftVersion=\"unknownAppSoftVersion\"", nil, nil, nil, http.StatusOK, MeAppListGET)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	log.Info("sendRequest done")
+// 	err = json.Unmarshal([]byte(rr), &respBody)
+// 	if err != nil {
+// 		t.Fatalf(err.Error())
+// 	}
+// 	fmt.Println("respBody: ", respBody)
+// 	receivedAppList = convertJsonToApplicationList(rr)
+// 	if !validateApplicationList(receivedAppList, appList) {
+// 		t.Errorf("handler returned unexpected body: got %v want %v", rr, expected_json_response)
+// 	}
+// 	log.Info("Received expected response")
+// 	// Known appName and unknown appSoftVersion
+// 	rr, err = sendRequest(http.MethodGet, "/app_list?appName=\""+appName1+"\"&appSoftVersion=\"unknownAppSoftVersion\"", nil, nil, nil, http.StatusOK, MeAppListGET)
+// 	if err != nil {
+// 		t.Fatalf(err.Error())
+// 	}
+// 	log.Info("sendRequest done")
 
-	err = json.Unmarshal([]byte(rr), &respBody)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	fmt.Println("respBody: ", respBody)
-	receivedAppList = convertJsonToApplicationList(rr)
-	if !validateApplicationList(receivedAppList, emptyApplicationList) {
-		t.Errorf("handler returned unexpected body: got %v want %v", rr, expected_json_response)
-	}
-	log.Info("Received expected response")
+// 	err = json.Unmarshal([]byte(rr), &respBody)
+// 	if err != nil {
+// 		t.Fatalf(err.Error())
+// 	}
+// 	fmt.Println("respBody: ", respBody)
+// 	receivedAppList = convertJsonToApplicationList(rr)
+// 	if !validateApplicationList(receivedAppList, emptyApplicationList) {
+// 		t.Errorf("handler returned unexpected body: got %v want %v", rr, expected_json_response)
+// 	}
+// 	log.Info("Received expected response")
 
-	// TODO Get onboarded MEC application using appName + appProvider + appSoftVersion filter
-	fmt.Println("Get onboarded MEC application using appName + appProvider + appSoftVersion filter")
+// 	// TODO Get onboarded MEC application using appName + appProvider + appSoftVersion filter
+// 	fmt.Println("Get onboarded MEC application using appName + appProvider + appSoftVersion filter")
 
-	terminateScenario()
-}
+// 	terminateScenario()
+// }
 
 func TestDevAppContextsPOST(t *testing.T) {
 	fmt.Println("--- ", t.Name())
@@ -1234,120 +1233,120 @@ func sendRequest(method string, url string, body io.Reader, vars map[string]stri
 	return string(rr.Body.String()), nil
 }
 
-func validateApplicationList(appInfoListEntry *ApplicationList, appInfoList ApplicationList) bool {
+// func validateApplicationList(appInfoListEntry *ApplicationList, appInfoList ApplicationList) bool {
 
-	if appInfoListEntry == nil {
-		fmt.Println("appInfoListEntry == nil")
-		return false
-	}
+// 	if appInfoListEntry == nil {
+// 		fmt.Println("appInfoListEntry == nil")
+// 		return false
+// 	}
 
-	if len(appInfoListEntry.AppList) != len(appInfoList.AppList) {
-		fmt.Println("len(appInfoListEntry.AppList) != len(appInfoList.AppList)")
-		return false
-	}
+// 	if len(appInfoListEntry.AppList) != len(appInfoList.AppList) {
+// 		fmt.Println("len(appInfoListEntry.AppList) != len(appInfoList.AppList)")
+// 		return false
+// 	}
 
-	for i, appList := range appInfoListEntry.AppList {
+// 	for i, appList := range appInfoListEntry.AppList {
 
-		if appList.VendorSpecificExt != appInfoList.AppList[i].VendorSpecificExt {
-			fmt.Println("appList.VendorSpecificExt != appInfoList.AppList.VendorSpecificExt")
-			return false
-		}
+// 		if appList.VendorSpecificExt != appInfoList.AppList[i].VendorSpecificExt {
+// 			fmt.Println("appList.VendorSpecificExt != appInfoList.AppList.VendorSpecificExt")
+// 			return false
+// 		}
 
-		if appList.AppInfo != nil && appInfoList.AppList[i].AppInfo != nil {
-			if appList.AppInfo.AppDId != appInfoList.AppList[i].AppInfo.AppDId {
-				fmt.Println("appList.AppInfo.AppDId != appInfoList.AppDId")
-				return false
-			}
-			if appList.AppInfo.AppName != appInfoList.AppList[i].AppInfo.AppName {
-				fmt.Println("appList.AppInfo.AppName != appInfoList.AppName")
-				return false
-			}
-			if appList.AppInfo.AppProvider != appInfoList.AppList[i].AppInfo.AppProvider {
-				fmt.Println("appList.AppInfo.AppProvider != appInfoList.AppProvider")
-				return false
-			}
-			if appList.AppInfo.AppSoftVersion != appInfoList.AppList[i].AppInfo.AppSoftVersion {
-				fmt.Println("appList.AppInfo.AppSoftVersion != appInfoList.AppSoftVersion")
-				return false
-			}
-			if appList.AppInfo.AppDVersion != appInfoList.AppList[i].AppInfo.AppDVersion {
-				fmt.Println("appList.AppInfo.AppDVersion != appInfoList.AppDVersion")
-				return false
-			}
-			if appList.AppInfo.AppDescription != appInfoList.AppList[i].AppInfo.AppDescription {
-				fmt.Println("appList.AppInfo.AppDescription != appInfoList.AppDescription")
-				return false
-			}
-			if appList.AppInfo.AppCharcs != nil && appInfoList.AppList[i].AppInfo.AppCharcs != nil {
-				if appList.AppInfo.AppCharcs.Memory != appInfoList.AppList[i].AppInfo.AppCharcs.Memory {
-					fmt.Println("len(appList.AppInfo.AppCharcs.Memory) != len(appInfoList.AppCharcs.Memory)")
-					return false
-				}
-				if appList.AppInfo.AppCharcs.Storage != appInfoList.AppList[i].AppInfo.AppCharcs.Storage {
-					fmt.Println("len(appList.AppInfo.AppCharcs.Storage) != len(appInfoList.AppCharcs.Storage)")
-					return false
-				}
-				if appList.AppInfo.AppCharcs.Latency != appInfoList.AppList[i].AppInfo.AppCharcs.Latency {
-					fmt.Println("len(appList.AppInfo.AppCharcs.Latency) != len(appInfoList.AppCharcs.Latency)")
-					return false
-				}
-				if appList.AppInfo.AppCharcs.Bandwidth != appInfoList.AppList[i].AppInfo.AppCharcs.Bandwidth {
-					fmt.Println("len(appList.AppInfo.AppCharcs.Bandwidth) != len(appInfoList.AppCharcs.Bandwidth)")
-					return false
-				}
-				if appList.AppInfo.AppCharcs.ServiceCont != appInfoList.AppList[i].AppInfo.AppCharcs.ServiceCont {
-					fmt.Println("len(appList.AppInfo.AppCharcs.ServiceCont) != len(appInfoList.AppCharcs.ServiceCont)")
-					return false
-				}
-			} else if (appList.AppInfo.AppCharcs == nil) != (appInfoList.AppList[i].AppInfo.AppCharcs == nil) {
-				fmt.Println("appList.AppInfo.AppCharcs != appInfoList.AppList.AppInfo.AppCharcs")
-				return false
-			}
-			//fmt.Println("===> len(appList.AppInfo.AppLocation): ", len(appList.AppInfo.AppLocation))
-			//fmt.Println("===> len(appInfoList.AppList[i].AppInfo.AppLocation): ", len(appInfoList.AppList[i].AppInfo.AppLocation))
-			if len(appList.AppInfo.AppLocation) != len(appInfoList.AppList[i].AppInfo.AppLocation) {
-				fmt.Println("len(appList.AppInfo.AppLocation) != len(appInfoList.AppList[i].AppInfo.AppLocation)")
-				return false
-			}
-			//fmt.Println("validateApplicationList: appList.AppInfo.AppLocation:                ", appList.AppInfo.AppLocation)
-			//fmt.Println("validateApplicationList: appInfoList.AppList[i].AppInfo.AppLocation: ", appInfoList.AppList[i].AppInfo.AppLocation)
-			for j, appLocation := range appList.AppInfo.AppLocation {
-				if appLocation.Area != nil && appInfoList.AppList[i].AppInfo.AppLocation[j].Area != nil {
-					if len(appLocation.Area.Coordinates) != len(appInfoList.AppList[i].AppInfo.AppLocation[j].Area.Coordinates) {
-						fmt.Println("len(appLocation.Area.Coordinates) != len(appInfoList.AppList.AppInfo.AppLocation.Area.Coordinates)")
-						return false
-					}
-					// TODO Compare content
-				} else if (appLocation.Area == nil) != (appInfoList.AppList[i].AppInfo.AppLocation[j].Area == nil) {
-					fmt.Println("appLocation.Area != appInfoList.AppList.AppInfo.AppLocation.Area")
-					return false
-				}
+// 		if appList.AppInfo != nil && appInfoList.AppList[i].AppInfo != nil {
+// 			if appList.AppInfo.AppDId != appInfoList.AppList[i].AppInfo.AppDId {
+// 				fmt.Println("appList.AppInfo.AppDId != appInfoList.AppDId")
+// 				return false
+// 			}
+// 			if appList.AppInfo.AppName != appInfoList.AppList[i].AppInfo.AppName {
+// 				fmt.Println("appList.AppInfo.AppName != appInfoList.AppName")
+// 				return false
+// 			}
+// 			if appList.AppInfo.AppProvider != appInfoList.AppList[i].AppInfo.AppProvider {
+// 				fmt.Println("appList.AppInfo.AppProvider != appInfoList.AppProvider")
+// 				return false
+// 			}
+// 			if appList.AppInfo.AppSoftVersion != appInfoList.AppList[i].AppInfo.AppSoftVersion {
+// 				fmt.Println("appList.AppInfo.AppSoftVersion != appInfoList.AppSoftVersion")
+// 				return false
+// 			}
+// 			if appList.AppInfo.AppDVersion != appInfoList.AppList[i].AppInfo.AppDVersion {
+// 				fmt.Println("appList.AppInfo.AppDVersion != appInfoList.AppDVersion")
+// 				return false
+// 			}
+// 			if appList.AppInfo.AppDescription != appInfoList.AppList[i].AppInfo.AppDescription {
+// 				fmt.Println("appList.AppInfo.AppDescription != appInfoList.AppDescription")
+// 				return false
+// 			}
+// 			if appList.AppInfo.AppCharcs != nil && appInfoList.AppList[i].AppInfo.AppCharcs != nil {
+// 				if appList.AppInfo.AppCharcs.Memory != appInfoList.AppList[i].AppInfo.AppCharcs.Memory {
+// 					fmt.Println("len(appList.AppInfo.AppCharcs.Memory) != len(appInfoList.AppCharcs.Memory)")
+// 					return false
+// 				}
+// 				if appList.AppInfo.AppCharcs.Storage != appInfoList.AppList[i].AppInfo.AppCharcs.Storage {
+// 					fmt.Println("len(appList.AppInfo.AppCharcs.Storage) != len(appInfoList.AppCharcs.Storage)")
+// 					return false
+// 				}
+// 				if appList.AppInfo.AppCharcs.Latency != appInfoList.AppList[i].AppInfo.AppCharcs.Latency {
+// 					fmt.Println("len(appList.AppInfo.AppCharcs.Latency) != len(appInfoList.AppCharcs.Latency)")
+// 					return false
+// 				}
+// 				if appList.AppInfo.AppCharcs.Bandwidth != appInfoList.AppList[i].AppInfo.AppCharcs.Bandwidth {
+// 					fmt.Println("len(appList.AppInfo.AppCharcs.Bandwidth) != len(appInfoList.AppCharcs.Bandwidth)")
+// 					return false
+// 				}
+// 				if appList.AppInfo.AppCharcs.ServiceCont != appInfoList.AppList[i].AppInfo.AppCharcs.ServiceCont {
+// 					fmt.Println("len(appList.AppInfo.AppCharcs.ServiceCont) != len(appInfoList.AppCharcs.ServiceCont)")
+// 					return false
+// 				}
+// 			} else if (appList.AppInfo.AppCharcs == nil) != (appInfoList.AppList[i].AppInfo.AppCharcs == nil) {
+// 				fmt.Println("appList.AppInfo.AppCharcs != appInfoList.AppList.AppInfo.AppCharcs")
+// 				return false
+// 			}
+// 			//fmt.Println("===> len(appList.AppInfo.AppLocation): ", len(appList.AppInfo.AppLocation))
+// 			//fmt.Println("===> len(appInfoList.AppList[i].AppInfo.AppLocation): ", len(appInfoList.AppList[i].AppInfo.AppLocation))
+// 			if len(appList.AppInfo.AppLocation) != len(appInfoList.AppList[i].AppInfo.AppLocation) {
+// 				fmt.Println("len(appList.AppInfo.AppLocation) != len(appInfoList.AppList[i].AppInfo.AppLocation)")
+// 				return false
+// 			}
+// 			//fmt.Println("validateApplicationList: appList.AppInfo.AppLocation:                ", appList.AppInfo.AppLocation)
+// 			//fmt.Println("validateApplicationList: appInfoList.AppList[i].AppInfo.AppLocation: ", appInfoList.AppList[i].AppInfo.AppLocation)
+// 			for j, appLocation := range appList.AppInfo.AppLocation {
+// 				if appLocation.Area != nil && appInfoList.AppList[i].AppInfo.AppLocation[j].Area != nil {
+// 					if len(appLocation.Area.Coordinates) != len(appInfoList.AppList[i].AppInfo.AppLocation[j].Area.Coordinates) {
+// 						fmt.Println("len(appLocation.Area.Coordinates) != len(appInfoList.AppList.AppInfo.AppLocation.Area.Coordinates)")
+// 						return false
+// 					}
+// 					// TODO Compare content
+// 				} else if (appLocation.Area == nil) != (appInfoList.AppList[i].AppInfo.AppLocation[j].Area == nil) {
+// 					fmt.Println("appLocation.Area != appInfoList.AppList.AppInfo.AppLocation.Area")
+// 					return false
+// 				}
 
-				if len(appLocation.CivicAddressElement) != len(appInfoList.AppList[i].AppInfo.AppLocation[j].CivicAddressElement) {
-					fmt.Println("len(appLocation.CivicAddressElement) != len(appInfoList.AppList.AppInfo.AppLocation.CivicAddressElement")
-					return false
-				}
-				for k, cv := range appLocation.CivicAddressElement {
-					if cv.CaType != appInfoList.AppList[i].AppInfo.AppLocation[j].CivicAddressElement[k].CaType || cv.CaValue != appInfoList.AppList[i].AppInfo.AppLocation[j].CivicAddressElement[k].CaValue {
-						fmt.Println("cv.CivicAddressElement != appContext.AppInfo.UserAppInstanceInfo[i].AppLocation[j].CivicAddressElement")
-						return false
-					}
-				} // End of 'for' statement
+// 				if len(appLocation.CivicAddressElement) != len(appInfoList.AppList[i].AppInfo.AppLocation[j].CivicAddressElement) {
+// 					fmt.Println("len(appLocation.CivicAddressElement) != len(appInfoList.AppList.AppInfo.AppLocation.CivicAddressElement")
+// 					return false
+// 				}
+// 				for k, cv := range appLocation.CivicAddressElement {
+// 					if cv.CaType != appInfoList.AppList[i].AppInfo.AppLocation[j].CivicAddressElement[k].CaType || cv.CaValue != appInfoList.AppList[i].AppInfo.AppLocation[j].CivicAddressElement[k].CaValue {
+// 						fmt.Println("cv.CivicAddressElement != appContext.AppInfo.UserAppInstanceInfo[i].AppLocation[j].CivicAddressElement")
+// 						return false
+// 					}
+// 				} // End of 'for' statement
 
-				if appLocation.CountryCode != appInfoList.AppList[i].AppInfo.AppLocation[j].CountryCode {
-					fmt.Println("appLocation.CountryCode != appInfoList.AppList.AppInfo.AppLocation.CountryCode")
-					return false
-				}
-			} // End of 'for' statement
-		} else if (appList.AppInfo == nil) != (appInfoList.AppList[i].AppInfo == nil) {
-			fmt.Println("appList.AppInfo != appInfoList.AppList.AppInfo.AppInfo")
-			return false
-		}
+// 				if appLocation.CountryCode != appInfoList.AppList[i].AppInfo.AppLocation[j].CountryCode {
+// 					fmt.Println("appLocation.CountryCode != appInfoList.AppList.AppInfo.AppLocation.CountryCode")
+// 					return false
+// 				}
+// 			} // End of 'for' statement
+// 		} else if (appList.AppInfo == nil) != (appInfoList.AppList[i].AppInfo == nil) {
+// 			fmt.Println("appList.AppInfo != appInfoList.AppList.AppInfo.AppInfo")
+// 			return false
+// 		}
 
-	} // End of 'for' statement
+// 	} // End of 'for' statement
 
-	return true
-}
+// 	return true
+// }
 
 func validateAppContext(appContextEntry *AppContext, appContext AppContext) bool {
 

@@ -116,8 +116,4 @@ codecov:
   enabled: false
   location: "<WORKDIR>/codecov/meep-dai"
 
-onboardedapp:
-  enabled: true
-  location: "<WORKDIR>/onboardedapp"
-
 meepOrigin: core

@@ -21,7 +21,7 @@ COPY ./user-api /user-api
 COPY ./data /
 #COPY ./onboardedapp/ /onboardedapp
 
-VOLUME /onboardedapp-vol
+# VOLUME /onboardedapp-vol
 
 RUN chmod +x /entrypoint.sh
 
