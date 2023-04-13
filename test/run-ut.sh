@@ -10,6 +10,8 @@ GOAPPS=(
     meep-wais/server
     meep-ams/server
     #meep-vis/server
+    meep-dai/server
+    meep-tm/server
 )
 
 GOPKGS=(

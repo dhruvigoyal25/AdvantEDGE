@@ -172,13 +172,13 @@ func Init(cfg SbiCfg) (err error) {
 	// Delete any old tables
 	_ = sbi.daiMgr.DeleteTables()
 
-	// Create new tables
-	err = sbi.daiMgr.CreateTables()
-	if err != nil {
-		log.Error("Failed to create tables: ", err)
-		return err
-	}
-	log.Info("Created new DAI DB tables")
+	// // Create new tables
+	// err = sbi.daiMgr.CreateTables()
+	// if err != nil {
+	// 	log.Error("Failed to create tables: ", err)
+	// 	return err
+	// }
+	// log.Info("Created new DAI DB tables")
 
 	// err = sbi.daiMgr.LoadOnboardedMecApplications(cfg.OnboardedMecApplicationsFolder)
 	// if err != nil {
