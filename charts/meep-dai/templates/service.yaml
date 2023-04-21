@@ -25,8 +25,11 @@ spec:
       targetPort: 31120
     - name: onboarded-demo1
       port: 31121
-      targetPort: 31122
+      targetPort: 31121
     - name: onboarded-demo2
+      port: 31122
+      targetPort: 31122
+    - name: onboarded-demo3
       port: 31123
       targetPort: 31123
     - name: onboarded-demo4

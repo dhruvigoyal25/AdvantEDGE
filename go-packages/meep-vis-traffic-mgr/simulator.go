@@ -229,7 +229,7 @@ func (simu *message_broker_simu) Run(tm *TrafficMgr) (err error) {
 				break
 			}
 			// Generate new V2X message
-			i := int32(rand.Intn(1)) + 1
+			i := int32(rand.Intn(2)) + 1
 			v2xMessage := simu.simulatedV2xMessages[i]
 			tm.v2x_notify(v2xMessage, i, nil, nil)
 		} // End of 'for' statement

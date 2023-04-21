@@ -5,12 +5,10 @@ go 1.13
 require (
 	github.com/InterDigitalInc/AdvantEDGE/go-packages/meep-app-support-client v0.0.0-20211214133749-f203f7ab4f1c
 	github.com/InterDigitalInc/AdvantEDGE/go-packages/meep-dai-client v0.0.0
-	github.com/InterDigitalInc/AdvantEDGE/go-packages/meep-data-key-mgr v0.0.0
 	github.com/InterDigitalInc/AdvantEDGE/go-packages/meep-http-logger v0.0.0
 	github.com/InterDigitalInc/AdvantEDGE/go-packages/meep-loc-serv-client v0.0.0-20211214133749-f203f7ab4f1c
 	github.com/InterDigitalInc/AdvantEDGE/go-packages/meep-logger v0.0.0
 	github.com/InterDigitalInc/AdvantEDGE/go-packages/meep-metrics v0.0.0
-	github.com/InterDigitalInc/AdvantEDGE/go-packages/meep-redis v0.0.0
 	github.com/InterDigitalInc/AdvantEDGE/go-packages/meep-sandbox-ctrl-client v0.0.0-20211214133749-f203f7ab4f1c
 	github.com/InterDigitalInc/AdvantEDGE/go-packages/meep-service-mgmt-client v0.0.0-20211214133749-f203f7ab4f1c
 	github.com/antihax/optional v1.0.0

@@ -1,4 +1,4 @@
-# {{classname}}
+# \MtsApi
 
 All URIs are relative to *https://localhost/sandboxname/mts/v1*
 
@@ -11,6 +11,7 @@ Method | HTTP request | Description
 [**MtsSessionPOST**](MtsApi.md#MtsSessionPOST) | **Post** /mts_sessions | Create a MTS session
 [**MtsSessionPUT**](MtsApi.md#MtsSessionPUT) | **Put** /mts_sessions/{sessionId} | Update the information about specific MTS session
 [**MtsSessionsListGET**](MtsApi.md#MtsSessionsListGET) | **Get** /mts_sessions | Retrieve information about a list of MTS sessions
+
 
 # **Mec011AppTerminationPOST**
 > Mec011AppTerminationPOST(ctx, body)
@@ -188,10 +189,11 @@ Retrieves information about a list of MTS sessions. Typically used in the 'Get c
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
- **optional** | ***MtsApiMtsSessionsListGETOpts** | optional parameters | nil if no parameters
+ **optional** | ***MtsSessionsListGETOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
-Optional parameters are passed through a pointer to a MtsApiMtsSessionsListGETOpts struct
+Optional parameters are passed through a pointer to a MtsSessionsListGETOpts struct
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **appInstanceId** | [**optional.Interface of []string**](string.md)| A MEC application instance may use multiple app_instance_ids as an input parameter to query the MTS session of a list of MEC application instances. See note. | 

@@ -1,0 +1,22 @@
+{
+  "name": "advant_edge_bandwidth_management_api",
+  "version": "2.2.1",
+  "description": "Bandwidth_Management_Sercice_is_AdvantEDGEs_implementation_of__ETSI_MEC_ISG_MEC015_Traffic_Management_APIs_httpswww_etsi_orgdeliveretsi_gsMEC001_09901502_02_01_60gs_MEC015v020201p_pdf_p_Copyright__c_ETSI_2017_httpsforge_etsi_orgetsi_forge_copyright_notice_txt_pMicro_servicebr_meep_tm_httpsgithub_comInterDigitalIncAdvantEDGEtreemastergo_appsmeep_tmserverbwm_pType__UsagebrEdge_Service_used_by_edge_applications_that_want_to_get_information_about_BWM_Info_and_Session_s_in_the_network_pNotebrAdvantEDGE_supports_all_Bandwidth_Management_API_endpoints_",
+  "license": "Apache 2.0",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "mocha --recursive"
+  },
+  "browser": {
+    "fs": false
+  },
+  "dependencies": {
+    "superagent": "3.7.0",
+    "querystring": "0.2.0"
+  },
+  "devDependencies": {
+    "mocha": "~2.3.4",
+    "sinon": "1.17.3",
+    "expect.js": "~0.3.1"
+  }
+}
