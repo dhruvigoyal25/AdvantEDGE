@@ -30,6 +30,7 @@ const ( // FIXME To be update with correct values at the end
 	tmDBPwd     = "pwd"
 	tmDBHost    = "localhost"
 	tmDBPort    = "30432"
+	tmBroker    = "broker"
 
 	category1              = "poa1-category"
 	poaName1               = "poa1-name"
@@ -55,26 +56,26 @@ func TestNewTrafficMgr(t *testing.T) {
 
 	// Invalid Connector
 	fmt.Println("Invalid VIS Asset Manager")
-	tm, err := NewTrafficMgr("", tmNamespace, tmDBUser, tmDBPwd, tmDBHost, tmDBPort)
+	tm, err := NewTrafficMgr("", tmNamespace, tmDBUser, tmDBPwd, tmDBHost, tmDBPort, tmBroker, nil, nil)
 	if err == nil || tm != nil {
 		t.Fatalf("DB connection should have failed")
 	}
-	tm, err = NewTrafficMgr(tmName, tmNamespace, tmDBUser, tmDBPwd, "invalid-host", tmDBPort)
+	tm, err = NewTrafficMgr(tmName, tmNamespace, tmDBUser, tmDBPwd, "invalid-host", tmDBPort, tmBroker, nil, nil)
 	if err == nil || tm != nil {
 		t.Fatalf("DB connection should have failed")
 	}
-	tm, err = NewTrafficMgr(tmName, tmNamespace, tmDBUser, tmDBPwd, tmDBHost, "invalid-port")
+	tm, err = NewTrafficMgr(tmName, tmNamespace, tmDBUser, tmDBPwd, tmDBHost, "invalid-port", tmBroker, nil, nil)
 	if err == nil || tm != nil {
 		t.Fatalf("DB connection should have failed")
 	}
-	tm, err = NewTrafficMgr(tmName, tmNamespace, tmDBUser, "invalid-pwd", tmDBHost, tmDBPort)
+	tm, err = NewTrafficMgr(tmName, tmNamespace, tmDBUser, "invalid-pwd", tmDBHost, tmDBPort, tmBroker, nil, nil)
 	if err == nil || tm != nil {
 		t.Fatalf("DB connection should have failed")
 	}
 
 	// Valid Connector
 	fmt.Println("Create valid VIS Asset Manager")
-	tm, err = NewTrafficMgr(tmName, tmNamespace, tmDBUser, tmDBPwd, tmDBHost, tmDBPort)
+	tm, err = NewTrafficMgr(tmName, tmNamespace, tmDBUser, tmDBPwd, tmDBHost, tmDBPort, tmBroker, nil, nil)
 	if err != nil || tm == nil {
 		t.Fatalf("Failed to create VIS Asset Manager")
 	}
@@ -104,7 +105,7 @@ func TestTrafficMgrCreateTrafficTable(t *testing.T) {
 
 	// Create Connector
 	fmt.Println("Create valid VIS Asset Manager")
-	tm, err := NewTrafficMgr(tmName, tmNamespace, tmDBUser, tmDBPwd, tmDBHost, tmDBPort)
+	tm, err := NewTrafficMgr(tmName, tmNamespace, tmDBUser, tmDBPwd, tmDBHost, tmDBPort, tmBroker, nil, nil)
 	if err != nil || tm == nil {
 		t.Fatalf("Failed to create VIS Asset Manager")
 	}
@@ -205,7 +206,7 @@ func TestTrafficMgrCreateCreateGridMap(t *testing.T) {
 
 	// Create Connector
 	fmt.Println("Create valid VIS Asset Manager")
-	tm, err := NewTrafficMgr(tmName, tmNamespace, tmDBUser, tmDBPwd, tmDBHost, tmDBPort)
+	tm, err := NewTrafficMgr(tmName, tmNamespace, tmDBUser, tmDBPwd, tmDBHost, tmDBPort, tmBroker, nil, nil)
 	if err != nil || tm == nil {
 		t.Fatalf("Failed to create VIS Asset Manager")
 	}
@@ -284,7 +285,7 @@ func TestPredictQosPerTrafficLoad(t *testing.T) {
 
 	// Create Connector
 	fmt.Println("Create valid VIS Asset Manager")
-	tm, _ := NewTrafficMgr(tmName, tmNamespace, tmDBUser, tmDBPwd, tmDBHost, tmDBPort)
+	tm, _ := NewTrafficMgr(tmName, tmNamespace, tmDBUser, tmDBPwd, tmDBHost, tmDBPort, tmBroker, nil, nil)
 
 	// Cleanup
 	_ = tm.DeleteTables()

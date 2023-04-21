@@ -10,42 +10,6 @@ info:
 servers:
 - url: http://10.190.115.162:8094
 paths:
-  /info/application:
-    get:
-      tags:
-      - frontend
-      summary: Returns the application dynamic information
-      description: Returns the application dynamic information
-      operationId: GetPlatformInfo
-      responses:
-        "200":
-          description: "Upon success, a response body containing the app instance\
-            \ info is returned"
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/ApplicationInstance'
-        "400":
-          description: Bad request. It is used to indicate that incorrect parameters
-            were passed to the request.
-        "404":
-          description: Not found
-  /info/logs:
-    get:
-      tags:
-      - frontend
-      summary: Returns activity logs
-      description: Returns activity logs
-      operationId: GetActivityLogs
-      responses:
-        "200":
-          description: "Uppon success, a response body containing logs of demo activities\
-            \ stored as strings will be returned"
-        "400":
-          description: Bad request. It is used to indicate that incorrect parameters
-            were passed to the request.
-        "404":
-          description: Not found
   /dai/apps:
     get:
       tags:
@@ -189,48 +153,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ApplicationContextDeleteNotification'
-        required: true
-      responses:
-        "200":
-          description: OK
-        "400":
-          description: Bad request
-        "404":
-          description: Not found
-  /services/callback/service-availability:
-    post:
-      tags:
-      - notification
-      summary: Callback endpoint for MEC011 Notifications
-      description: Callback endpoint for MEC011 Notifications
-      operationId: ServiceAvailNotificationCallback
-      requestBody:
-        description: service availability notification details
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ServiceAvailabilityNotification'
-        required: true
-      responses:
-        "200":
-          description: OK
-        "400":
-          description: Bad request
-        "404":
-          description: Not found
-  /application/termination:
-    post:
-      tags:
-      - notification
-      summary: Callback endpoint for MEC011 app-termination notifications
-      description: Callback endpoint for MEC011 app-termination notifications
-      operationId: AppTerminationNotificationCallback
-      requestBody:
-        description: app termination notification details
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AppTerminationSubscription'
         required: true
       responses:
         "200":

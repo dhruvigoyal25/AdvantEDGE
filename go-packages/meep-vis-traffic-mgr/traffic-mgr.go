@@ -913,7 +913,7 @@ func (tm *TrafficMgr) GetInfoUuUnicast(params []string, num_item int) (proInfoUu
 					log.Error(err.Error())
 					return nil, err
 				}
-				log.Info("url:%v\nscheme:%v host:%v Path:%v Port:%s", u, u.Scheme, u.Hostname(), u.Path, u.Port())
+				// log.Info("url:%v\nscheme:%v host:%v Path:%v Port:%s", u, u.Scheme, u.Hostname(), u.Path, u.Port())
 				v2xApplicationServer = &V2xApplicationServer{
 					IpAddress: u.Hostname(),
 					UdpPort:   u.Port(),
@@ -956,7 +956,7 @@ func (tm *TrafficMgr) StartV2xMessageBrokerServer() (err error) {
 		log.Error(err.Error())
 		return err
 	}
-	log.Info("url:%v\nscheme:%v host:%v Path:%v Port:%s", u, u.Scheme, u.Hostname(), u.Path, u.Port())
+	// log.Info("url:%v\nscheme:%v host:%v Path:%v Port:%s", u, u.Scheme, u.Hostname(), u.Path, u.Port())
 	if u.Scheme == "mqtt" {
 		// TODO tm.message_broker = &message_broker_mqtt{false}
 		tm.message_broker = &message_broker_simu{false, map[int32][]byte{}, nil}

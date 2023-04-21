@@ -38,7 +38,7 @@ repo:
     # platform ingress configuration
     ingress:
       # host name
-      host: 10.3.16.73
+      host: advantedge.testfqdn.dev
       # enable https only (redirect http requests to https port)
       https-only: false
       # bind to host ports (true) or node ports (false)
